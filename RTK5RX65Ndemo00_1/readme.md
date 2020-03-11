@@ -27,8 +27,8 @@ RTK65RX65Ndemo00_1:
     thinks that an RX600-series microcontroller will be debugged by JTAG.
 - **make the HardwareDebug settings:**
   - Project > Properties >
-  - _Properties for RTK5RX65Ndemo00_0_
-    - Run/Debug Settings > RTK5RX65Ndemo00_0 HardwareDebug > Edit... >
+  - _Properties for RTK5RX65Ndemo00_1_
+    - Run/Debug Settings > RTK5RX65Ndemo00_1 HardwareDebug > Edit... >
   - _Edit launch configuration properties_
     - Debugger > Connection Settings >
       - Clock: HOCO
