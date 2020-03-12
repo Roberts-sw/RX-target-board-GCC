@@ -34,7 +34,7 @@ void mcu_clock_setup (void)
 {	//HW 7. Option-Setting Memory (OFSM):
 	//OFS1 (in vects.c) has HOCO disabled at reset.
 	//It has to be started, default at 16 MHz, used here.
-	SYSTEM.HOCOCR.BYTE=0;//IOREG_WRITE(SYSTEM.HOCOCR.BYTE,0);
+	SYSTEM.HOCOCR.BYTE=0;
 	while(!SYSTEM.OSCOVFSR.BIT.HCOVF)
 		NOP();					//... wait for oscillation to stabilize
 
