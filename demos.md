@@ -3,9 +3,10 @@ demo projects:
 
 #### RTK5RX65Ndemo00_0:
 **functionality:** LED1 500 ms on, 500 ms off, using smart configurator
-- LOCO clock 240 kHz
+- LOCO clock 240 kHz used as instruction clock ICLK and
+  peripheral clock B PCLKB
 - TMR1 source PCLKB, CMIA1: 240 + interrupt, vector INTB149 => 1kHz
-- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7)
+- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
 
 This project shows that with very little effort, only 4 lines of source code,
 you can produce a lot of program, more than 15 kB in size with this specific
@@ -42,10 +43,10 @@ little more than 3 kB.
 
 #### RTK5RX65Ndemo01:
 **functionality:** same as before, with other settings:
-- HOCO clock 16 MHz
-- TMR0 source PCLKB, CMIA0: 64 without interrupt => 0,25 MHz
-- TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 1 kHz
-- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7)
+- HOCO clock 16 MHz used as instruction clock ICLK and
+  peripheral clock B PCLKB
+- TMR1 source PCLKB/64, CMIA1: 250 + interrupt, vector INTB149 => 1 kHz
+- INTB149 Millis-count,    div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
 - using a precompiler-macro to initialize all IO-pins with ease
 
 The instruction clock frequency has gone up more than 66-fold, but by
@@ -55,9 +56,14 @@ As an added bonus, despite having to implement clock switching to get
 at the higher frequency, the program now only takes 2,5 kB in stead of
 the original 15 kB, so in total the size has been divided by 6.
 
-#### RTK5RX65Ndemo02: to be done
+#### RTK5RX65Ndemo02:
 **functionality:** same as version `01`, with other settings:
-- HOCO clock 16 MHz, PLL used to get ICLK-frequency of 32 MHz
+- HOCO clock 16 MHz, PLL div 2 mul 16 = 128 MHz
+- instruction clock ICLK / 4 = 32 MHz, peripheral PCLKB / 4 = 32 MHz
+- TMR0 source PCLKB, CMIA0: 128 no interrupt => 0,25 MHz
+- TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 1kHz
+- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
+- using a precompiler-macro to initialize all IO-pins with ease
 
 With these settings you can use the RX65N-board to get an idea of the
 RX100-series performance (32MHz max, no FPU), or the RX231/RX23W
@@ -65,10 +71,17 @@ RX100-series performance (32MHz max, no FPU), or the RX231/RX23W
 
 #### RTK5RX65Ndemo03: to be done
 **functionality:** same as version `02`, with other settings:
-- HOCO clock 16 MHz, PLL used to get ICLK-frequency of 120 MHz
-- ROM wait states inserted, because the RX65x doesn't use MONOS-Flash!
+- HOCO clock 16 MHz, PLL div 1 mul 15 = 240 MHz
+- instruction clock ICLK / 2 = 120 MHz, peripheral PCLKB / 4 = 60 MHz
+- TMR0 source PCLKB, CMIA0: 240 without interrupt => 0,25 MHz
+- TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 1kHz
+- ROM wait states inserted, as the RX65x doesn't have 120 MHz MONOS-Flash!
 
 With these settings you can get an idea of the performance of this ucon.
+Restrictions apply, as the peripheral clocks except PCLKA have a maximum
+setting of 60 MHz.
+Furthermore, as the Flash memory is only capable of operation upto 50 MHz,
+ROM wait states had to be inserted.
 
 #### RTK5RX65Ndemo04: to be done
 **functionality:** differing from version `03`:
