@@ -69,7 +69,7 @@ With these settings you can use the RX65N-board to get an idea of the
 RX100-series performance (32MHz max, no FPU), or the RX231/RX23W
 (with built-in FPU) when operating at 32 MHz.
 
-#### RTK5RX65Ndemo03: to be done
+#### RTK5RX65Ndemo03:
 **functionality:** same as version `02`, with other settings:
 - HOCO clock 16 MHz, PLL div 1 mul 15 = 240 MHz
 - instruction clock ICLK / 2 = 120 MHz, peripheral PCLKB / 4 = 60 MHz
