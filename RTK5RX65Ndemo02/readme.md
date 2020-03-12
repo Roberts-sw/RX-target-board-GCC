@@ -35,7 +35,7 @@ RTK65RX65Ndemo02:
 **result:**
  - 8 files in "generate" folder, of which 1 line was commented out,
  - 1 file in "src" folder has all code that matters for the developer
- - prog: 2676
+ - prog: 2744
  - constant: 1176
  - data: 0
  - bss: 4
