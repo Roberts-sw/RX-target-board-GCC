@@ -76,12 +76,29 @@ RX100-series performance (32MHz max, no FPU), or the RX231/RX23W
 - TMR0 source PCLKB, CMIA0: 240 without interrupt => 0,25 MHz
 - TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 1kHz
 - ROM wait states inserted, as the RX65x doesn't have 120 MHz MONOS-Flash!
+- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
 
 With these settings you can get an idea of the performance of this ucon.
 Restrictions apply, as the peripheral clocks except PCLKA have a maximum
 setting of 60 MHz.
 Furthermore, as the Flash memory is only capable of operation upto 50 MHz,
 ROM wait states had to be inserted.
+
+#### RTK5RX65Ndemo03_144:
+**functionality:** same as version `03`, **running (out of spec) at 144 MHz**:
+- HOCO clock 16 MHz, PLL / 2 * 18 = 144 MHz
+- ICLK / 1 = 144 MHz, PCLKB / 2 = 72 MHz, **both out of spec**
+- TMR0 source PCLKB/8, CMIA0: 36 no interrupt => 0,25 MHz
+- TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 1kHz
+- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
+
+Just trying, at Friday the 13th of March, and it works at 20% overclock.
+
+Note: I only used 1 TMR-interrupt, no other peripherals, so I won't give any
+guarantee of the complete chip functioning at this speed, but as you can see
+the settings for all clocks are 20% overclocked. The reason I tried this one
+is that if itwas used with an external crystal or clock generator you could
+still derive a valid 48 MHz USB-clock by division of 144 MHz by 3.
 
 #### RTK5RX65Ndemo04: to be done
 **functionality:** differing from version `03`:

@@ -1,10 +1,10 @@
-/* RTK5RX65Ndemo03 > src > main.c
+/* RTK5RX65Ndemo04 > src > main.c
    ------------------------------------------ TAB-size 4, code page UTF-8 --
 
 functies:
-- HOCO clock 16 MHz, PLL / 1 * 15 = 240 MHz
-- ICLK / 2 = 120 MHz, PCLKB / 4 = 60 MHz
-- TMR0 source PCLKB, CMIA0: 240 no interrupt => 0,25 MHz
+- HOCO clock 16 MHz, PLL / 2 * 18 = 144 MHz
+- ICLK / 1 = 144 MHz, PCLKB / 2 = 72 MHz
+- TMR0 source PCLKB/8, CMIA0: 36 no interrupt => 0,25 MHz
 - TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 1kHz
 - INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7)
 - ROMWT=2
@@ -18,9 +18,9 @@ test:
 wijzigingen:
 	RvL 12-3-2020	aanmaak
 ------------------------------------------------------------------------- */
-#define ICK_HZ	(120*1000*1000)	//120 MHz
-#define PLIDIV_	(1)		//choose from 1 2 3
-#define PLLMUL2	(30)	//choose from 20-60, mul = choice/2
+#define ICK_HZ	(144*1000*1000)	//<= 120 MHz
+#define PLIDIV_	(2)		//choose from 1 2 3
+#define PLLMUL2	(36)	//choose from 20-60, mul = choice/2
 #define NOP()	__asm("nop")
 
 	//TB 5.5 User LED, p.12
@@ -69,8 +69,8 @@ void mcu_clock_setup (void)
 	//bus clock division: necessary: f_PLL=240M, ICLK=120M
 	//frequency restrictions: ICLK>=BCLK, PCLKA>=PCLKB>=PCLKC>=PCLKD
 	SYSTEM.SCKCR.LONG= 1<<23 | 1<<22			//PSTOP1|PSTOP0
-	| CK_4<<28 | CK_2<<24 | CK_4<<16			//FCK ICK BCK =60 120 60 MHz
-	| CK_2<<12 | CK_4<< 8 | CK_4<< 4 | CK_4<<0;//PCKA -B -C -D=120 60 60 60 MHz
+	| CK_2<<28 | CK_1<<24 | CK_2<<16			//FCK ICK BCK =60 120 60 MHz
+	| CK_1<<12 | CK_2<< 8 | CK_2<< 4 | CK_2<<0;//PCKA -B -C -D=120 60 60 60 MHz
 
 	//USB clock: not used
 //	SYSTEM.SCKCR2.WORD=0x0011;	//0008 0024h:0011
@@ -116,7 +116,7 @@ void hardware_setup (void)
 	MSTP(TMR01)=0U;				//release TMR0 and 1 from module-stop
 
 	TMR0.TCR.BYTE=0x08;			//clear on match A, no interrupt
-	TMR0.TCORA=240-1;			//match-frequency = f_clock / 240
+	TMR0.TCORA=36-1;			//match-frequency = f_clock / 72
 
 	TMR1.TCR.BYTE=0x48;			//clear on match A, with interrupt
 	TMR1.TCORA=250-1;			//match-frequency = f_clock / 250
@@ -127,7 +127,7 @@ void hardware_setup (void)
 
 	//start timers
 	TMR1.TCCR.BYTE=0x18;		//clock source = CMIA0 (0,25MHz)
-	TMR0.TCCR.BYTE=0x08;		//clock source = PCLKB (60MHz)
+	TMR0.TCCR.BYTE=0x08|2;		//clock source = PCLKB/8 (18MHz)
 }
 
 #ifdef CPPAPP
