@@ -100,7 +100,7 @@ the settings for all clocks are 20% overclocked. The reason I tried this one
 is that if itwas used with an external crystal or clock generator you could
 still derive a valid 48 MHz USB-clock by division of 144 MHz by 3.
 
-#### RTK5RX65Ndemo04: to be done
+#### RTK5RX65Ndemo04:
 **functionality:** differing from version `03`:
 - made Arduino-style functions micros() and millis(), derived from TMR0 and TMR1
 - LED0 (PORTD bit 6) starts with '0', toggles every 250.000 us, using micros()
@@ -110,9 +110,21 @@ still derive a valid 48 MHz USB-clock by division of 144 MHz by 3.
 
 This project serves to gain some feeling about which integer sizes to use for
 RAM-restricted programs (I know, this one has 640 kB of it), and why you would
-sometimes use unsigned and signed integers of differing sizes. With a few
-`#define` statements to be (un)commented for variations in functionality, you
-can debug and try to explain in which way and why the behaviour differs with
-the chosen setting.
+sometimes use unsigned and signed integers of differing sizes. With a `#define`
+statements to be set for variations in functionality, you can debug and try to
+explain in which way and why the behaviour differs with the chosen setting.
+
+**Questions:**
+1. Why does TEST with value 0 not work? Why does it work when the statement
+   commented-out is used instead?
+   - Try to do the calculation `millis() - t_LED1` by hand, starting with
+     t_LED1=0 and Millis=0. The first test will increase t_LED1 by 250, what
+     is happening then when Millis is still 0, or when it is 1? Go on until
+     Millis=7, and try to discover what the ucon `sees` as a result of the
+     calculation after casting it to int8_t.
+   - Hint: imagine all possible values written on a disc that rotates 1 value
+     when Millis increases by 1.
+2. Why does TEST with value 1, or 2, or 3, work with only having 1 compare,
+   in stead of the 2 compares necessary to make TEST 0 work correctly?
 
 #### RTK5RX65Ndemo05: to be done

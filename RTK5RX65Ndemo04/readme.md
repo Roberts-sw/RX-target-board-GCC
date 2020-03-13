@@ -1,18 +1,19 @@
-RTK65RX65Ndemo03_144:
-**functionality:** LED1 500 ms on, 500 ms off at 144 MHz instruction clock !
-- HOCO clock 16 MHz, PLL / 2 * 18 = 144 MHz
-- ICLK / 1 = 144 MHz, PCLKB / 2 = 72 MHz
-- TMR0 source PCLKB/8, CMIA0: 36 no interrupt => 0,25 MHz
-- TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 1kHz
-- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
+RTK65RX65Ndemo04:
+**functionality:** sw-toggle: LED0 250.000 us on-off, LED1 250 ms off-on
+- HOCO clock 16 MHz, PLL / 1 * 15 = 240 MHz
+- ICLK / 2 = 120 MHz, PCLKB / 4 = 60 MHz
+- TMR0 source PCLKB, CMIA0: 60 no interrupt => 1 MHz
+- TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 2kHz
+- INTB149 acc_4kHz count + increment Micros, div 4 = Millis 
+- main(): time polling with micros() and millis()
 
 **skipping smart configurator:**
 - in stead of selecting smart configurator, choose Finish >
 
 **make the HardwareDebug settings:**
 - Project > Properties >
-- _Properties for RTK5RX65Ndemo03_144_
-  - Run/Debug Settings > RTK5RX65Ndemo03_144 HardwareDebug > Edit... >
+- _Properties for RTK5RX65Ndemo03_
+  - Run/Debug Settings > RTK5RX65Ndemo03 HardwareDebug > Edit... >
 - _Edit launch configuration properties_
   - Debugger > Connection Settings >
     - Clock: HOCO
@@ -35,9 +36,8 @@ RTK65RX65Ndemo03_144:
 **result:**
  - 8 files in "generate" folder, of which 1 line was commented out,
  - 1 file in "src" folder has all code that matters for the developer
- - prog: ???
+ - prog: 3004 or 3008, depending on TEST value and code in TEST 0.
  - constant: 1176
  - data: 0
- - bss: 4
+ - bss: 20
  - other: 28
- 

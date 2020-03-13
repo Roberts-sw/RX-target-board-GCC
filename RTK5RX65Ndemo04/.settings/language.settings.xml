@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project>
-	<configuration id="com.renesas.cdt.managedbuild.gcc.rx.configuration.debug.2141401121" name="HardwareDebug">
+	<configuration id="com.renesas.cdt.managedbuild.gcc.rx.configuration.debug.1078415060" name="HardwareDebug">
 		<extension point="org.eclipse.cdt.core.LanguageSettingsProvider">
 			<provider copy-of="extension" id="org.eclipse.cdt.ui.UserLanguageSettingsProvider"/>
 			<provider class="org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector" console="false" env-hash="1670366236965011867" id="com.renesas.cdt.managedbuild.gcc.rx.ui.languageprovider" keep-relative-paths="false" name="Renesas GCCBuildinCompilerSettings" parameter="${COMMAND} ${toolchain_flags} ${FLAGS} -E -P -v -dD &quot;${INPUTS}&quot;" prefer-non-shared="true">
