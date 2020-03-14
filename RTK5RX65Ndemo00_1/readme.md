@@ -53,11 +53,12 @@ RTK65RX65Ndemo00_1
 - data: 0 (was 12)
 - bss: 4 (was 2116)
 - other: 28 (was 5404)
-- When debugging and repeatedly choosing "Step Into" you will only have 3
-  open source files:
-  1. `start.S`: startup code after reset in assembly language
-  2. `hwinit.c`: containing the empty `HardwareSetup()` function
-  3. `main.c`: containing the functional code
+
+**note:**
+If debugging and repeatedly choosing "Step Into" only 3 source files will open:
+1. `start.S`: startup code after reset in assembly language
+2. `hwinit.c`: containing the empty `HardwareSetup()` function
+3. `main.c`: containing the functional code
 
 One can see that by looking into the hardware manual it is possible,
 with some more effort, to compact the code a lot **and** gain some insight
@@ -67,4 +68,5 @@ its code while having the hardware manual alongside, just to understand why
 some code is there.
   
 The next project will do clock switching to a default speed of 16 MHz,
-but use even less program memory for the same LED functionality.
+but use even less program memory for the same LED functionality, all
+without touching compiler optimization settings.

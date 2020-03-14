@@ -51,14 +51,41 @@ RTK65RX65Ndemo00_0
 - ^F2 will terminate the debug session
 
 **result:**
+This project shows that with very little effort, only 4 lines of source code,
+you can produce a lot of program, more than 15 kB in size with this specific
+ucon:
 - 128 files in 31 folders, excluding documentation
 - prog: 15648
 - constant: 1504
 - data: 12
 - bss: 2116
 - other: 5404
-- When debugging and trying to understand what was going on, I gave up after
-  having 16 open source files by repeatedly choosing "Step Into", and then I
-  just did "Run".
-  Using the "configurators" with an IDE will **not** give you insight in what
-  is happening!
+
+**note:**
+When debugging and trying to understand what was going on, I gave up after
+having 16 open source files by repeatedly choosing "Step Into", and then I
+just did "Run".
+Using the "configurators" with an IDE will **not** give you insight in what
+is happening!
+
+A program with this functionality programmed for an 8-bit ucon would
+typically require less than 200 Bytes of program code altogether, and as
+additional benefit apart from the much smaller memory footprint you as a
+programmer would have insight in what happens "under the hood", meaning
+that you would also know how to change settings in a running program.
+
+The IDE provides a benefit of quick start-up, but you loose the knowledge
+for changing settings as could be needed in a certain program and as an
+added disadvantage you need a more expensive ucon, with more memory.
+
+This controller speed suffices for a lot of projects where IO has to be
+controlled. I remember the days when we were building fan controllers
+powered by PIC-microcontrollers, and using a 3,68MHz crystal to arrive
+at a, divided-by-four, maximum instruction speed of less than 1 MHz.
+The frequency was chosen to make using a hardware-UART possible with
+communication at for example 9600 baud.
+All calculations had to be done by software, as multiply and divide
+were not implemented, and using more than 8-bit values required extra
+software to handle it. Even then, multiple analog output were made by
+software-PWM routines and it all functioned well enough for
+livestock-farming.

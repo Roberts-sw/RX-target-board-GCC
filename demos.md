@@ -1,130 +1,49 @@
 demo projects:
 ---
 
-#### RTK5RX65Ndemo00_0:
-**functionality:** LED1 500 ms on, 500 ms off, using smart configurator
-- LOCO clock 240 kHz used as instruction clock ICLK and
-  peripheral clock B PCLKB
-- TMR1 source PCLKB, CMIA1: 240 + interrupt, vector INTB149 => 1kHz
-- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
+**Background**: As a developer of hard- and software, the Renesas
+RX microcontroller (ucon) has some strengths that appeal to me:
+- It's assembly language can be read, like in the Gnu Assembler, in the 
+  natural order for Latin alphabet languages, from left to right.
+- It's Endian-setting can be chosen: Big-Endian or Little-Endian (default).
+  Big-Endian is useful for working with "natural" quantities, where
+  comparisons have to be made.
+  For example sorting of ASCII-text, if the ucon is in Big-Endian mode,
+  it can do multi-Byte compares to speed up sorting.
 
-This project shows that with very little effort, only 4 lines of source code,
-you can produce a lot of program, more than 15 kB in size with this specific
-microcontroller (ucon):
-- main routine:
-  ```.c
-  R_Config_TMR1_Start();
-  ``` 
-- interrupt callback:
-  ```.c
-  static uint32_t volatile Millis;
-  if( 500<= ++Millis )
-      PORTD.PODR.BIT.B7^=1, Millis=0;
-  ```
+There seems to be a complete lack of interest from Renesas towards
+hobbyist developers. It's like they don't understand that when you
+have experience in using a microcontroller, choosing that ucon for
+a development project is a natural choice.
 
-A program with this functionality programmed for an 8-bit ucon would
-typically require less than 200 Bytes of program code altogether, and as
-additional benefit apart from the much smaller memory footprint you as a
-programmer would have insight in what happens "under the hood", meaning
-that you would also know how to change settings in a running program.
+The aim of these projects is to help people with a low budget in using
+the RX ucon, by using:
+1. an RX target board, priced at about 20 Euros, with embedded debugger.
+2. e2studio, usable free-of-charge
+3. GCC, usable free-of-charge
 
-The IDE provides a benefit of quick start-up, but you loose the knowledge
-for changing settings as could be needed in a certain program and as an
-added disadvantage you need a more expensive ucon, with more memory.
+General instructions for getting started with installation of the tools
+and starting a new project are in GCC_e2studio_RX65N.md
 
-#### RTK5RX65Ndemo00_1:
-**functionality:** same as version `_0`, with only functional code extracted,
-so that debugging gives much less source files opened and much more insight
-in what is needed to start working with the ucon, compiler and IDE.
+The projects are setup to take small incremental steps in understanding
+and using the RX ucon, and at the time of this writing, are only tested
+on Windows.
 
-This project shows that even on a 32-bit ucon the amount of memory used for
-having some functionality can be restricted, in this case from 15 kB to a
-little more than 3 kB.
-
-#### RTK5RX65Ndemo01:
-**functionality:** same as before, with other settings:
-- HOCO clock 16 MHz used as instruction clock ICLK and
-  peripheral clock B PCLKB
-- TMR1 source PCLKB/64, CMIA1: 250 + interrupt, vector INTB149 => 1 kHz
-- INTB149 Millis-count,    div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
-- using a precompiler-macro to initialize all IO-pins with ease
-
-The instruction clock frequency has gone up more than 66-fold, but by
-hardware-interlocking the second timer the interrupt-routine doesn't
-change at all to get the same functionality of the LED.
-As an added bonus, despite having to implement clock switching to get
-at the higher frequency, the program now only takes 2,5 kB in stead of
-the original 15 kB, so in total the size has been divided by 6.
-
-#### RTK5RX65Ndemo02:
-**functionality:** same as version `01`, with other settings:
-- HOCO clock 16 MHz, PLL div 2 mul 16 = 128 MHz
-- instruction clock ICLK / 4 = 32 MHz, peripheral PCLKB / 4 = 32 MHz
-- TMR0 source PCLKB, CMIA0: 128 no interrupt => 0,25 MHz
-- TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 1kHz
-- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
-- using a precompiler-macro to initialize all IO-pins with ease
-
-With these settings you can use the RX65N-board to get an idea of the
-RX100-series performance (32MHz max, no FPU), or the RX231/RX23W
-(with built-in FPU) when operating at 32 MHz.
-
-#### RTK5RX65Ndemo03:
-**functionality:** same as version `02`, with other settings:
-- HOCO clock 16 MHz, PLL div 1 mul 15 = 240 MHz
-- instruction clock ICLK / 2 = 120 MHz, peripheral PCLKB / 4 = 60 MHz
-- TMR0 source PCLKB, CMIA0: 240 without interrupt => 0,25 MHz
-- TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 1kHz
-- ROM wait states inserted, as the RX65x doesn't have 120 MHz MONOS-Flash!
-- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
-
-With these settings you can get an idea of the performance of this ucon.
-Restrictions apply, as the peripheral clocks except PCLKA have a maximum
-setting of 60 MHz.
-Furthermore, as the Flash memory is only capable of operation upto 50 MHz,
-ROM wait states had to be inserted.
-
-#### RTK5RX65Ndemo03_144:
-**functionality:** same as version `03`, **running (out of spec) at 144 MHz**:
-- HOCO clock 16 MHz, PLL / 2 * 18 = 144 MHz
-- ICLK / 1 = 144 MHz, PCLKB / 2 = 72 MHz, **both out of spec**
-- TMR0 source PCLKB/8, CMIA0: 36 no interrupt => 0,25 MHz
-- TMR1 source CMIA0, CMIA1: 250 + interrupt, vector INTB149 => 1kHz
-- INTB149 Millis-count, div 500 = toggle LED1 (PORTD bit 7) => 2 Hz
-
-Just trying, at Friday the 13th of March, and it works at 20% overclock.
-
-Note: I only used 1 TMR-interrupt, no other peripherals, so I won't give any
-guarantee of the complete chip functioning at this speed, but as you can see
-the settings for all clocks are 20% overclocked. The reason I tried this one
-is that if itwas used with an external crystal or clock generator you could
-still derive a valid 48 MHz USB-clock by division of 144 MHz by 3.
-
-#### RTK5RX65Ndemo04:
-**functionality:** differing from version `03`:
-- made Arduino-style functions micros() and millis(), derived from TMR0 and TMR1
-- LED0 (PORTD bit 6) starts with '0', toggles every 250.000 us, using micros()
-  - at least 32-bit local time-value needed to compare with micros()
-- LED1 (PORTD bit 7) starts with '1', toggles every 250 ms, using millis()
-  - at least 8-bit local time-value needed to compare with millis()
-
-This project serves to gain some feeling about which integer sizes to use for
-RAM-restricted programs (I know, this one has 640 kB of it), and why you would
-sometimes use unsigned and signed integers of differing sizes. With a `#define`
-statements to be set for variations in functionality, you can debug and try to
-explain in which way and why the behaviour differs with the chosen setting.
-
-**Questions:**
-1. Why does TEST with value 0 not work? Why does it work when the statement
-   commented-out is used instead?
-   - Try to do the calculation `millis() - t_LED1` by hand, starting with
-     t_LED1=0 and Millis=0. The first test will increase t_LED1 by 250, what
-     is happening then when Millis is still 0, or when it is 1? Go on until
-     Millis=7, and try to discover what the ucon `sees` as a result of the
-     calculation after casting it to int8_t.
-   - Hint: imagine all possible values written on a disc that rotates 1 value
-     when Millis increases by 1.
-2. Why does TEST with value 1, or 2, or 3, work with only having 1 compare,
-   in stead of the 2 compares necessary to make TEST 0 work correctly?
+The projects incremental features are:
+1. RTK5RX65Ndemo00_0: using smart configurator for a simple program,
+1. RTK5RX65Ndemo00_1: LOCO clock oscillator 240 kHz, TMR CMIA1-interrupt,
+   IO pins, simplifying a project and at the same time shrinking program size,
+1. RTK5RX65Ndemo01: HOCO clock 16 MHz, IO pin macro for initializing,
+1. RTK5RX65Ndemo02: HOCO + PLL, cascading timers, emulating RX100/RX200 series,
+1. RTK5RX65Ndemo03: PLL + wait states, maximum specified clock speed 120 MHz,
+1. RTK5RX65Ndemo03_144: overclocking the RX65N, +20% test at 144 MHz,
+1. RTK5RX65Ndemo04: using different integer number sizes, Arduino-style
+   functions micros() and millis(),
+1. RTK5RX65Ndemo05: IRQ-interrupt
+1. RTK5RX65Ndemo06: pin name macro, "bare metal" io pin control, iopin-library,
+1. RTK5RX65Ndemo07: using C++ and C++-wrappers,
+1. RTK5RX65Ndemo08: communication LED library,
+1. RTK5RX65Ndemo09: synchronous LED-library,
+1. RTK5RX65Ndemo10: combining iopin-library and synchronous LED library
 
 #### RTK5RX65Ndemo05: to be done

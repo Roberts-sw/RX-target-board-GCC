@@ -39,11 +39,11 @@ RTK65RX65Ndemo01:
  - bss: 4
  - other: 28
 
-The next project will use the PLL to get an instruction clock cycle of 32 MHz.
-If you make a project with it you can get a feeling of how an RX100-series
-ucon would perform, as that would have a maximum clock frequency of 32 MHZ.
-When using the FPU, it can also be used to get a feeling of the performance
-of an RX231 ucon with a clock speed setting of 32 MHz.
-Of course both of the above ucons can have a supply voltage of 5V, useful
-for direct driving of MOSFET's, but the RX65N has other useful features.
- 
+**note:**
+The instruction clock frequency has gone up more than 66-fold, but by
+using a divided clock input one can still use an 8-bit timer for timing
+milli-seconds.
+
+As an added bonus, despite having to implement clock switching to get
+at the higher frequency, the program now only takes 2,5 kB in stead of
+the original 15 kB, so in total the size has been divided by 6.

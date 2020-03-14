@@ -40,4 +40,12 @@ RTK65RX65Ndemo03_144:
  - data: 0
  - bss: 4
  - other: 28
- 
+
+**note:**
+Just trying, at Friday the 13th of March, and it works at 20% overclock.
+
+Note: I only used 1 TMR-interrupt, no other peripherals, so I won't give any
+guarantee of the complete chip functioning at this speed, but as you can see
+the settings for all clocks are 20% overclocked. The reason I tried this one
+is that if itwas used with an external crystal or clock generator you could
+still derive a valid 48 MHz USB-clock by division of 144 MHz by 3.

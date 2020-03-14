@@ -40,3 +40,10 @@ RTK65RX65Ndemo03:
  - data: 0
  - bss: 4
  - other: 28
+
+**note:**
+With these settings you can get an idea of the performance of this ucon.
+Restrictions apply, as the peripheral clocks except PCLKA have a maximum
+setting of 60 MHz.
+Furthermore, as the Flash memory is only capable of operation upto 50 MHz,
+ROM wait states had to be inserted.

@@ -41,3 +41,47 @@ RTK65RX65Ndemo04:
  - data: 0
  - bss: 20
  - other: 28
+
+**note:**
+This project serves to gain some feeling about which integer sizes to use for
+RAM-restricted programs (I know, this one has 640 kB of it), and why you would
+sometimes use unsigned and signed integers of differing sizes. With a `#define`
+statements to be set for variations in functionality, you can debug and try to
+explain in which way and why the behaviour differs with the chosen setting.
+
+**questions:**
+1. Why does TEST with calue 0 not work, and why does it work with the other
+   values 1, 2, and 3?
+   - Hints:
+     1. Why is an unsigned 8-bit difference greater than 6 used for toggling
+        the LED output and incrementing the 8-bit time value?
+        - NB: a value of 256 will be understood as 0 when stored in 8 bits.
+     2. Why does a signed 16-bit difference suffice to toggle the LED output
+        and increment the 16-bit time value? The millis()-value is unsigned
+        32-bit, so what will happen after half a minute, or a minute, when the
+        16-bit time value can't store the millis()-value anymore?
+        - NB: type promotion will extend the stored 16-bit time value to 32-bit
+          before subtracting it from the 32-bit millis()-value, and then a
+          type-cast (or bit cutt-off) to 16-bit will be done before regarding
+          the resulting value as a signed value.
+     3. Why is an unsigned 16-bit difference greater than 65286 used for
+        toggling the LED output and incrementing the 16-bit time value?
+        - NB: a value of 65536 will be understood as 0 when stored in 16 bits.
+   - The above hints can be understood better when thinking of the numbers
+     within a given size written on a disc that turns around 1 number every
+     milli-second. Compare it to a decimal number with 1 or 2 digits, counting
+     up and arriving back at zero after 1 (or 2 in the latter case) 9's have
+     displayed. For a signed number at the other side of the disc the numbers
+     must be interpreted as negative, so 5 in the decimal case would be read
+     as -5, 6 as -4 and so on.
+2. Why does TEST with value 0 not work?
+   - Try to do the calculation `millis() - t_LED1` by hand, starting with
+     t_LED1=0 and Millis=0. The first test will increase t_LED1 by 250, what
+     is happening then when Millis is still 0, or when it is 1? Go on until
+     Millis=7, and try to discover what the ucon `sees` as a result of the
+     calculation after casting it to int8_t.
+3. Why does TEST with value 0 work when the test is expanded to
+   `if(0>dt1||6<=dt1)`?
+   - Hints: see the test with TEST-value 1 as an example, read the text above
+     about signed numbers and determine when the difference will be seen as
+     negative or non-negative.
