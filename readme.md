@@ -46,4 +46,4 @@ The projects incremental features are:
 1. RTK5RX65Ndemo09: synchronous LED-library,
 1. RTK5RX65Ndemo10: combining iopin-library and synchronous LED library
 
-#### RTK5RX65Ndemo05: to be done
+#### RTK5RX65Ndemo06+: to be done
