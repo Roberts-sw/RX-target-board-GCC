@@ -6,7 +6,7 @@ RTK65RX65Ndemo07:
 - IRQ4 (SW1-press) toggles LED0, (SW1-release) toggles LED1
 
 ### create the project as a C++-project with GCC:
-For example, create project RTK5RX65Ndemo00
+For example, create project RTK5RX65Ndemo07
 - File > New > C/C++ Project > 
 - _Templates for New C/C++ Project_
   - Renesas RX > 
