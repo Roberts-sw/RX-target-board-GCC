@@ -1,4 +1,4 @@
-programming features of this demo
+programming features of this demo (06)
 ---
 
 **main.c**:
@@ -56,12 +56,26 @@ When I saw a question at [http://renesasrulz.com/rx](http://renesasrulz.com/rx)
 ```
 
 **iopin.c**:
-- multi-purpose protection macro, for 'void' and 'int' functions, to
-  return if the parameter for the iopin passed an invalid number:
-  - `#define PROTECT	if(_isiopin(iopin) ) ; else return`:
-    can be used with ';' or value and ';' to reaturn from the routine.
+- various 'private' precompiler-macros that gef '#undef'-ed at the end of
+  the source file so they are unknown outside the source file.
+  The term **private** is being used for things that remain inside this
+  source file.
+- a 'protected' IOPORT-array of constant values that holds bits for
+  register offset inside the 'IO_'-structure as well as lsb bit-offsets
+  of the pin inside the elements of 'IO_'.
+  The term **protected** in this case only means that the name isn't exported
+  within the header file, an `extern ...` could be used in a source file that
+  knows of the existence and needs access.
+- a 'public' ICPIN-array of constant values that holds the chip's pin numbers
+  for each of the IO-pins of the chip.
+  The term **public** means that the header declares the array, so it is
+  accessible by a source file directly or indirectly including the header file.
+- multi-purpose protection macro, for 'void' and non-void functions, to
+  return  a value or nothing if the parameter for the iopin passed an invalid
+  number:
+  - `#define PROTECT	if(_isiopin(iopin) ) ; else return`
 - macro's to determine port and bit numbers using the enum defined above
-  and an array of constant values:
+  and IOPORT[]:
   - `#define portbit_(iopin)    (!iopin ? 3 : IOPORT[iopin]& 7)`
   - `#define portnr_(iopin)     (!iopin ? 18: IOPORT[iopin]>>4)`
 - definition of an input-only pin to test against for IO-functions:
