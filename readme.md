@@ -16,7 +16,7 @@ The projects are setup to take small incremental steps in understanding
  what's behind that in the followin:
 
 The projects incremental features are:
-1. [demo00_0](./RTK5RX65Ndemo00_0)): using smart configurator for a simple program,
+1. [demo00_0](./RTK5RX65Ndemo00_0): using smart configurator for a simple program,
 1. [demo00_1](./RTK5RX65Ndemo00_1): LOCO clock oscillator 240 kHz, TMR CMIA1-interrupt,
    IO pins, simplifying a project and at the same time shrinking program size,
 1. [demo01](./RTK5RX65Ndemo01): HOCO clock 16 MHz, IO pin macro for initializing,
@@ -26,11 +26,11 @@ The projects incremental features are:
 1. [demo04](./RTK5RX65Ndemo04): using different integer number sizes, Arduino-style
    functions micros() and millis(),
 1. [demo05](./RTK5RX65Ndemo05): IRQ-interrupt
-1. [demo06](./RTK5RX65Ndemo06): pin name macro, "bare metal" io pin control, iopin-library,
+1. [demo06](./RTK5RX65Ndemo06): pin name macro, "bare metal" io pin control, iopin library,
 1. [demo07](./RTK5RX65Ndemo07): using C++ and C++-wrappers,
 1. [demo08](./RTK5RX65Ndemo08): communication LED library,
-1. [demo09](./RTK5RX65Ndemo09): synchronous LED-library,
-1. [demo10](./RTK5RX65Ndemo10): combining iopin-library and synchronous LED library
+1. [demo09](./RTK5RX65Ndemo09): synchronous LED library,
+1. [demo10](./RTK5RX65Ndemo10): combining iopin library and synchronous LED library
 
 #### RTK5RX65Ndemo08+: to be done
  

@@ -24,9 +24,7 @@ wijzigingen:
 
 #include <iodefine.h>
 #include <stdint.h>
-extern "C" {
-	#include "iopin.h"
-}
+#include "iopin.h"
 
 	//TB 5.5 User LED, p.12
 IoPin led0(PD6);//#define LED0 PD6
@@ -72,15 +70,15 @@ void HOCO_PLL_120MHz (void)
 	//HW 22. I/O Ports
 enum en_edge {eLOW, eFALL, eRISE, eBOTH};
 void hardware_setup (void)
-{	led0.init(IO_LO);//iopin_init(LED0,IO_LO);
-	led1.init(IO_HI);//iopin_init(LED1,IO_HI);
-	sw1.init(IO_IN);//iopin_init(SW1, IO_IN);//
-/*	iopin_alldirs(	0b00000000,0b00000000,0b00000000,0b00000000,//PORT0..3
+{/*	iopin_alldirs(	0b00000000,0b00000000,0b00000000,0b00000000,//PORT0..3
 					0b00000000,0b00000000,0b00000000,0b00000000,//PORT4..7
 					0b00000000,0b00000000,0b00000000,0b00000000,//PORT8..B
 					0b00000000,0b11000000,0b00000000,0b00000000,//PORTC..F
 					0b00000000,0b00000000	);//PORTG, PORTJ
-*/
+*/	led0.init(IO_LO);//iopin_init(LED0,IO_LO);
+	led1.init(IO_HI);//iopin_init(LED1,IO_HI);
+	sw1.init(IO_IN);//iopin_init(SW1, IO_IN);//
+
 	//HW 23. Multi-Function Pin Controller (MPC)
 	//HW 23.2.13 PBn Pin Function Control Register (PBnPFS) (n = 0 to 7)
 	//bit 6: '1' = ISEL: Interrupt input function SELect

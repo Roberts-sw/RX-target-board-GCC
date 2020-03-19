@@ -33,7 +33,7 @@ For example, create project RTK5RX65Ndemo07
 ### make the HardwareDebug settings:
 ### Debug/Run:
 take a look at `readme.md` of previous demo-projects or
-see [GCC_e2studio_RX65N.md](https://github.com/Roberts-sw/RX-target-board-GCC/blob/master/GCC_e2studio_RX65N.md)
+ see [GCC_e2studio_RX65N.md](../GCC_e2studio_RX65N.md)
 
 **taking over code from RTK65RX65Ndemo06:**
 - rename `RTK65RX65Ndemo06.cpp` to `main.cpp`, copy contents of `main.c` from last demo.
@@ -43,18 +43,18 @@ see [GCC_e2studio_RX65N.md](https://github.com/Roberts-sw/RX-target-board-GCC/bl
 
 ### converting the project afterwards to C++:
 In case you forgot to create the project as a C++-project, it has to be
-converted to a C++-project:
+ converted to a C++-project:
 - File > New > Convert to a C/C++ Project (adds C/C++ Nature) >
   - _Convert to a C/C++ Project_
   - select `RTK65RX65Ndemo07`, choose Finish >
 - change file name of `main.c` to `main.cpp`
 
-Now when using statis objects, a build will probably give you error messages,
-stating something with **undefined reference to `__dso_handle'**.
+Now when using static objects, a build will probably give you errors,
+complaining about **undefined reference to `__dso_handle'**.
 
 In order to get a proper build you need to add an **assembler**-setting,
-because the code in `start.S` needs to know there are static C++-objects to
-be able to initialize them:
+ because the code in `start.S` needs to know there are static C++-objects to
+ be able to initialize them:
 - Project > Properties > 
 - _Properties for RTK5RX65Ndemo07_
   - C/C++ Build > Settings > Assembler > Source >
@@ -62,21 +62,9 @@ be able to initialize them:
     - Confirm with OK > Apply and Close >
 
 ### Differences with C-program demo06:
-1. `#include "iopin.h"` is surrounded with with a predecessor line
-   `extern "C" {` and a successor line `}`, as is
-   `#include "interrupt_handlers.h"`, as both are header files for C-routines.
-   The compiler will use `C` call conventions for the functions in these header
-   files.
-2. Preprocessor #define statements for the pins are replaced by objects as
-   class instances, as can be seen in lines 32, 33 and 36.
-3. The iopin_init()-functions have been replaced by object methods(),
-   see lins 75-77 and 87.
-4. The IRQ4-interrupt routine, although called with `C` conventions, is a
-   C++-routine, as it can directly call the objects `read()`, `write()` and
-   `toggle()` methods.
-
-I left the original C statements as comments on the same lines, so it is
-easier to compare them with their C++-counterpart.
+See [programming_features.md](./programming_features.md) or just look inside
+ main.cpp. I left the original C statements as comments on the same lines, so
+ it is easier to compare them with their C++-counterpart.
 
 **result:**
  - prog: 4860 (using commented version: 4404, demo06: 4220)
@@ -91,4 +79,3 @@ same program, the run-time efficient C-functions, as well as the
 typewriter-friendly C++-methods.
 The program size has grown because the C++-wrappers, even if we don't use them 
 take space as we still compile with `-O0` (optimization: **None**).
-
