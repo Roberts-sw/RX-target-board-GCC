@@ -141,5 +141,5 @@ extern "C" {
 void INT_Excep_ICU_IRQ4(void)
 {	if(!sw1.read() )//if(!iopin_read(SW1) )//	//LED0 (press)
 		led0.write(!led0.read() );//iopin_write(LED0,!iopin_read(LED0) );
-	else led1.toggle();//iopin_toggle(LED1);//LED1 (release)
+	else led1.toggle();//else iopin_toggle(LED1);//LED1 (release)
 }

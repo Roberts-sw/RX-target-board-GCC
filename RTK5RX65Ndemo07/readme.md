@@ -79,13 +79,16 @@ I left the original C statements as comments on the same lines, so it is
 easier to compare them with their C++-counterpart.
 
 **result:**
- - prog: 4860 (C version: 4220)
- - constant: 1380 (C version: 1334)
- - data: 1068 (C version: 0)
- - bss: 16 (C version: 0)
+ - prog: 4860 (using commented version: 4404, demo06: 4220)
+ - constant: 1380 (commented version: 1370, demo06: 1334)
+ - data: 1068 (commented version: 4, demo06: 0)
+ - bss: 16 (commented version: 4, demo06: 0)
  - other: 28 (unchanged)
 
 It can be seen that this demo with C++-wrappers takes quite a bit more memory
 than the C-only version, but the nice thing is that both can be used in the
 same program, the run-time efficient C-functions, as well as the
 typewriter-friendly C++-methods.
+The program size has grown because the C++-wrappers, even if we don't use them 
+take space as we still compile with `-O0` (optimization: **None**).
+
