@@ -13,7 +13,7 @@ For example, create project RTK5RX65Ndemo00
   - GCC for Renesas RX C/C++ Executable Project > 
   - Next >
 - _New GCC for Renesas RX Executable Project_
-  - Project name: RTK5RX65Ndemo00
+  - Project name: RTK5RX65Ndemo07
   - Next >
 - _Select toolchain, device & debug settings_
   - at Toolchain settings, for language, tick `C++`
@@ -27,7 +27,7 @@ For example, create project RTK5RX65Ndemo00
   - Next >
 - _Select library generator settings_
   - Next >
-- _Summary of project "RTK5RX65Ndemo00"_
+- _Summary of project "RTK5RX65Ndemo07"_
   - Finish >
 
 ### make the HardwareDebug settings:
