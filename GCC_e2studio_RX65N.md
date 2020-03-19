@@ -22,6 +22,7 @@ For example, create project RTK5RX65Ndemo00
   - GCC for Renesas RX C/C++ Executable Project > 
   - Next >
 - _New GCC for Renesas RX Executable Project_
+  - choose the appropriate type, C or C++
   - Project name: RTK5RX65Ndemo00
   - Next >
 - _Select toolchain, device & debug settings_
@@ -62,12 +63,12 @@ For example, create project RTK5RX65Ndemo00
 
 ### recommended (optional) file rename
 - navigate to the project's src-folder and rename the `.c`-file to
-  `main.c`:
+  `main.c` (or `.cpp` to `main.cpp`):
   1. inside the "Project Explorer" pane click at the `>` next to the 
      project name to unfold/open the project folder,
   2. click at `>` next to src to unfold/open the src folder
   3. click at the .c-file and press function key `<F2>` for renaming
-  4. enter `main.c` as the file name
+  4. enter `main.c`(or `main.cpp`) as the file name
 
 After editing project files as required, build the project again to incorporate
 the latest changes. If errors come up, the build won't succeed and corrections
