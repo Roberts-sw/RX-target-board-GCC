@@ -28,11 +28,12 @@ The projects incremental features are:
 1. [demo05](./RTK5RX65Ndemo05): IRQ-interrupt
 1. [demo06](./RTK5RX65Ndemo06): pin name macro, "bare metal" io pin control, iopin library,
 1. [demo07](./RTK5RX65Ndemo07): using C++ and C++-wrappers,
-1. [demo08](./RTK5RX65Ndemo08): communication LED library,
+1. [demo08](./RTK5RX65Ndemo08): communication LED,
 1. [demo09](./RTK5RX65Ndemo09): synchronous LED library,
 1. [demo10](./RTK5RX65Ndemo10): combining iopin library and synchronous LED library
+1. [demo11](./RTK5RX65Ndemo11): communication LED, program/control button and LED light
 
-#### RTK5RX65Ndemo08+: to be done
+#### RTK5RX65Ndemo09+: to be done
  
 **Background**: As a developer of hard- and software, the Renesas
  RX microcontroller (ucon) has some strengths that appeal to me:
