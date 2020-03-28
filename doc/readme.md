@@ -6,4 +6,4 @@ en:
 
 nl:
 - automaat: toestandsautomaat bij demo10
-  [automaton.pdf](./en/automaton.pdf) en bron [automaton.tex](./en/automaton.tex)
+  [automaat.pdf](./nl/automaat.pdf) en bron [automaat.tex](./nl/automaat.tex)
