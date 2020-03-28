@@ -1,0 +1,192 @@
+\documentclass[a4paper, 11pt, fleqn, twoside]{scrartcl}% https://komascript.de/komascriptbestandteile
+\KOMAoptions{BCOR=10mm, DIV=15}
+
+%-------------------------------------------------------------------------------
+\input{../sub/docstijl}
+\input{../sub/src-code}
+\lstset{otherkeywords={s08,s16,s32,s64,u08,u16,u32,u64}}
+\lstset{keywordsprefix={0x000}}% opdracht begint met letter, eerste 0 niet mee!
+
+% RvLpagina-macro's:
+%-------------------------------------------------------------------------------
+\renewcommand\Docnr{499\_.202.en}
+\renewcommand\Document{automaton}
+\renewcommand\Uitgever{RvL techniek}
+\renewcommand{\logo}{\tikz[scale=0.1,baseline=-1.5] \qfnpcb;}
+% extra voor titelblad:
+%-------------------------------------------------------------------------------
+%\def\date{27 March 2020}
+%\renewcommand\Auteur{\date\\Robert van Lierop\\\texttt{rvl minus techniek at hetnet dot nl}}
+%\renewcommand\Doctype{example}
+%\renewcommand{\logovoor}{\tikz[scale=0.2,baseline=-1.5] \qfnchipa;}
+
+\renewenvironment{description}[1][1.5em]%standaardwaarde
+ {\list{}{\labelwidth=0pt \leftmargin=#1
+  \let\makelabel\descriptionlabel}}
+ {\endlist}
+
+\begin{document}
+%\titelblad{State automata are pieces of information that can be used to help
+% programmers in describing the functionality of a piece of code to other people.
+%\\This document shows an example of how an automaton can be used to make a
+% program for controlling a lamp dimmer with a tactile push button.
+%}
+\pagestyle{RvLpagina}
+
+\section{Introduction}
+An automaton is a construct of states and inputs where each state and input
+ together lead to a possibly new state. Applying this to a machine its working
+ is described press the form of states, and reading of inputs can change the
+ state.
+
+In the simplest case the machine controller does nothing except when inputs
+ are happening.
+
+As an example we observe a lamp, that can be switched with a tactile pushbutton,
+ and the `controller machine' transforms the function into that of a latching
+ button.
+
+The input events we can deduct are:
+\begin{description}
+\item[press] pressing the button against its spring pressure to have a contact
+\item[release] at releasing the button its rest state state will be non-contact
+\end{description}
+
+The stable states we can see are:
+\begin{description}
+\item[off] the lamp is off, choosen here as the starting state
+\item[on] the lamp is on
+\end{description}
+
+We would like the lamp to have a `natural' response, meaning switching on at
+ the press and switching off at the release of the button. Furthermore we
+ want to suppress some milliseconds of contact bounce of the mechanical part.
+ Therefore the addition of 2 passing states can help:
+
+\begin{description}
+\item[off1] the lamp was off and the button pressed
+\item[on1] the lamp was on and the button pressed
+\end{description}
+
+\begin{center}
+\begin{tikzpicture}[auto, >=stealth, shorten >=1pt,
+ auto, node distance=2.5cm, on grid, bend angle=45,
+ every state/.style={circle,draw=blue!50,fill=blue!20,thick},
+ background rectangle/.style={fill=orange!10},
+ show background rectangle]
+% \draw[help lines,ultra thin] (-2,-2) grid (4,4);
+ \clip (-2.2,-1.7) rectangle (4.2,4.2);
+ \node [state,initial,accepting] (off){off};
+ \node [state] (off1) [above=of off] {off1};
+ \node [state,accepting] (on) [right=of off1] {on};
+ \node [state] (on1) [below=of on] {on1};
+ \path[->]
+	(off)  edge node {press} (off1)
+	(off1) edge node {release} (on) edge [loop above] node {press} ()
+	(on)  edge node {press} (on1)
+	(on1) edge node {release} (off) edge [loop below] node {press} ();
+\end{tikzpicture}
+\end{center}
+
+The example can be programmed into a 4 $\times$ 2 decision matrix
+ with rows representing the states and columns representing the input
+ events.
+The cells hold the new state, possibly prefixed with a comma and before
+ that press italics the action to be done for the lamp ouput, or a minus sign
+ if nothing changes with the combination of state and input:\\
+
+\begin{center}
+\begin{tabular}{|l|c|c|}\hline
+     & press & release\\ \hline
+ off & $switch\ on$, off1	& -\\ \hline
+off1 & - & on\\ \hline
+ on & on1 & -\\ \hline
+on1 & - & $switch\ off$, off\\ \hline
+\end{tabular}
+\end{center}
+
+\section{dimming automaton}
+Just as with the introduction we would like a lamp to immediately switch
+ on at button press and only switch off at the button release.
+
+The state diagram from the introduction is expanded with holding the tactile
+ push button, leading to dimming up or down press lamp intensity. In order to
+ acoomodate these extras, a new input (column) \textbf{hold} is added press the
+ table, repeating at regular intervals. Two additional states, \textbf{up} 
+ and \textbf{dn}, are added where the lamp intensity is adjusted.
+
+A memory function is added to hold the intensity before switching off and to
+ restore this value at switching on, so for example a night stand lamp will 
+ switch on at the chosen dimmed intensity.
+
+We discover that 2 stable on-positions are needed for that. Renaming on and
+ on1 to H an H1 for high intensity we can add L and L1 for low intensity and
+ press after the stable state, so we can also switch the lamp off with a short
+ press from L. Renaming off and off1 to O and O1 leads to an elegant-looking
+ diagram with diagonal positions for stable states and dimming, and transition 
+ states in between:
+ 
+\begin{center}
+\begin{tikzpicture}[->, >=stealth', shorten >=1pt,
+ auto, node distance=2.5cm, on grid, bend angle=45,
+ every state/.style={circle,draw=blue!50,fill=blue!20,thick},
+ background rectangle/.style={fill=orange!10},
+ show background rectangle]
+ \clip (-4.7,-3.7) rectangle (5.2,4.2);
+% \draw[help lines] (-3,-3) grid (3,3);
+ \node [state,initial,accepting, initial below] (O) {O};
+ \node [state] (O1) [above=of O] {O1};
+ \node [state] (up) [left=of O1] {up};
+ \node [state,accepting] (H) [right=of O1] {H};
+ \node [state] (H1) [below=of H] {H1};
+ \node [state] (dn) [below=of H1] {dn};
+ \node [state] (L1) [ left=of O] {L1};
+ \node [state,accepting] (L) [below=of L1] {L};
+% vanaf off:
+ \path	(O)	 edge node {press} (O1)
+ 		(O1) edge node {release} (H) edge node {hold} (up)
+ 		(up) edge [bend left] node {release} (H) edge [loop left] node {hold} ();
+%vanaf hoog:
+ \path	(H)	 edge node {press} (H1)
+ 		(H1) edge node {release} (O) edge node {hold} (dn)
+ 		(dn) edge node {release} (L) edge [loop right] node {hold} ();
+% vanaf laag:
+ \path	(L)	 edge node {press} (L1)
+ 		(L1) edge node {release} (O) edge node {hold} (up);
+\end{tikzpicture}
+\end{center}
+
+The corresponding matrix with possible implementation functions can be:\\
+
+\begin{minipage}{0.35\textwidth}
+\hspace{2em}\begin{tabular}{|l|c|c|c|}\hline
+   & release  & press   & hold \\ \hline%\hline
+ O & -    & f1() &-     \\ %\hline
+ O1& h()  & -    & f2() \\ %\hline
+ up& h()  & -    & f2() \\ \hline
+ H & -    & h1() & -    \\ %\hline
+ H1& f4() & -    & f3() \\ %\hline
+ dn& l()  & -    & f3() \\ \hline
+ L & -    & l1() & -    \\ %\hline
+ L1& f4() & -    & f2() \\ \hline
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.6\textwidth}\begin{itemize}
+\item[f1()] \lstinline[language=C]${return lamp=saved, O1;}$
+\item[f2()] \lstinline[language=C]${if(++lamp>max) lamp=max; return up;}$
+\item[f3()] \lstinline[language=C]${if(--lamp<min) lamp=min; return dn;}$
+\item[f4()] \lstinline[language=C]${return saved=lamp,lamp=0, O;}$
+\item[h()]  \lstinline[language=C]${return H;}$
+\item[h1()] \lstinline[language=C]${return H1;}$
+\item[l()]  \lstinline[language=C]${return L;}$
+\item[l1()] \lstinline[language=C]${return L1;}$
+\end{itemize}
+\end{minipage}
+
+\vspace{2ex}
+In a real-world project I could optimize the above as well as add more functionality.
+
+%\begin{center}
+%\end{center}
+
+\end{document}

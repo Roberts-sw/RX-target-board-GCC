@@ -1,0 +1,193 @@
+\documentclass[a4paper, 11pt, fleqn, twoside]{scrartcl}% https://komascript.de/komascriptbestandteile
+\KOMAoptions{BCOR=10mm, DIV=15}
+
+%-------------------------------------------------------------------------------
+\input{../sub/docstijl}
+\input{../sub/src-code}
+\lstset{otherkeywords={s08,s16,s32,s64,u08,u16,u32,u64}}
+\lstset{keywordsprefix={0x000}}% opdracht begint met letter, eerste 0 niet mee!
+
+% RvLpagina-macro's:
+%-------------------------------------------------------------------------------
+\renewcommand\Docnr{499\_.202}
+\renewcommand\Document{automaat}
+\renewcommand\Uitgever{RvL techniek}
+\renewcommand{\logo}{\tikz[scale=0.1,baseline=-1.5] \qfnpcb;}
+% extra voor titelblad:
+%-------------------------------------------------------------------------------
+%\def\date{27 maart 2020}
+%\renewcommand\Auteur{\date\\Robert van Lierop\\\texttt{rvl minus techniek at hetnet dot nl}}
+%\renewcommand\Doctype{voorbeeld}
+%\renewcommand{\logovoor}{\tikz[scale=0.2,baseline=-1.5] \qfnchipa;}
+
+\renewenvironment{description}[1][1em]%standaardwaarde
+ {\list{}{\labelwidth=0pt \leftmargin=#1
+  \let\makelabel\descriptionlabel}}
+ {\endlist}
+
+\begin{document}
+%\titelblad{Toestandsautomaten bieden een hulpmiddel aan programmeurs
+% om de werking van een stuk code eenvoudig aan leken uit te leggen.
+%\\Dit document geeft een voorbeeld van hoe men met een automaat een 
+% terugverende drukknop als bediening voor een lichtdimmer kan programmeren.
+%}
+\pagestyle{RvLpagina}
+
+\section{Inleiding}
+Een toestandsautomaat vormt een systeembeschrijving waarbij een systeem
+ telkens vanuit een toestand naar een andere toestand kan gaan bij het optreden
+ van een bepaalde invoergebeurtenis.
+
+In het meest eenvoudige geval betekent het dat de verwerkingseenheid van
+ het systeem niets doet tenzij er een invoergebeurtenis optreedt.
+
+Als voorbeeld wordt hiervoor een lamp genomen, die met behulp van een
+ terugverende drukknop geschakeld kan worden, waarbij het programma denkbeeldig
+ de knop vasthoudt.
+
+Als gebeurtenissen zien we hierbij:
+\begin{description}[1.2em]
+\item[in] de knop wordt ingedrukt tegen zijn veerduk in
+\item[los] de knop wordt losgelaten en veert terug uit
+\end{description}
+
+De onderscheiden stabiele toestanden zijn:
+\begin{description}
+\item[uit] de lamp is uit, ook als begintoestand gekozen
+\item[aan] de lamp is aan
+\end{description}
+
+We willen dat de lamp `natuurlijk' reageert, dus aan op indrukken als de lamp
+ uit is, en uit op loslaten als de lamp aan is. Bovendien willen we een 
+ aantal milliseconden contactdender van de drukknop onderdrukken.
+ Daarvoor is het handig om 2 overgangstoestanden toe te voegen:
+\begin{description}
+\item[uit1] de lamp was uit en de knop ingedrukt
+\item[aan1] de lamp was aan en de knop ingedrukt
+\end{description}
+
+\begin{center}
+\begin{tikzpicture}[auto, >=stealth, shorten >=1pt,
+ auto, node distance=2cm, on grid, bend angle=45,
+ every state/.style={circle,draw=blue!50,fill=blue!20,thick},
+ background rectangle/.style={fill=orange!10},
+ show background rectangle]
+% \draw[help lines,ultra thin] (-2,-2) grid (4,4);
+ \clip (-2.2,-2.2) rectangle (4.2,4.2);
+ \node [state,initial,accepting] (uit){uit};
+ \node [state] (uit1) [above=of uit] {uit1};
+ \node [state,accepting] (aan) [right=of uit1] {aan};
+ \node [state] (aan1) [below=of aan] {aan1};
+ \path[->]
+	(uit)  edge node {in} (uit1)
+	(uit1) edge node {los} (aan) edge [loop above] node {in} ()
+	(aan)  edge node {in} (aan1)
+	(aan1) edge node {los} (uit) edge [loop below] node {in} ();
+\end{tikzpicture}
+\end{center}
+
+Het voorbeeld is te programmeren in een 4 $\times$ 2 beslismatrix
+ met rijen voor de toestanden en kolommen voor de optredende invoer.
+De matrix wordt ingevuld met een minteken voor een combinatie waar
+ niets wijzigt, of de nieuwe toestand voor de combinatie, eventueel
+ voorafgegaan door, schuingedrukt, de te nemen actie op de lampuitgang,
+ en een komma als scheidingsteken:\\
+ 
+\begin{center}
+\begin{tabular}{|l|c|c|}\hline
+     & in & los\\ \hline
+ uit & $ga\ aan$, uit1	& -\\ \hline
+uit1 & - & aan\\ \hline
+ aan & aan1 & -\\ \hline
+aan1 & - & $ga\ uit$, uit\\ \hline
+\end{tabular}
+\end{center}
+
+\section{dimmerautomaat}
+
+Als bij de inleiding willen we dat een lamp die uit is meteen inschakelt
+ bij indrukken, en een lamp die aan is pas uitschakelt bij loslaten.
+
+Het toestandsdiagram uit de inleiding wordt uitgebreid met vast ingedrukt
+ houden van de knop, waarbij op- of afdimmen plaatsvindt. Daartoe wordt
+ een nieuwe gebeurtenis (kolom) \textbf{vast} in de tabel opgenomen, die 
+ regelmatig herhaalt bij ingedrukt houden. Op deze gebeurtenis zijn twee
+ toestanden nodig, \textbf{op} en \textbf{af}, waarin de helderheid van
+ de lamp wordt bijgeregeld.
+
+Verder willen we een geheugen hebben om net voor het uitschakelen de laatst
+ gebruikte helderheid in te bewaren, en net voor het inschakelen deze weer
+ uit op te halen, zodat bij voorbeeld een sfeerlamp op een gekozen helderheid
+ wordt ingeschakeld.
+
+We ontdekken dat daarvoor 2 stabiele aan-toestanden nodig zijn. De bestaande
+ aan en aan1 worden hernoemd naar H en H1 voor hoge helderheid, en de
+ nieuwe noemen we L voor lage helderheid, met L1 om ook vanaf L met een
+ korte druk de lamp uit te schakelen. Na hernoemen van uit en uit1 naar U en 
+ U1 ontstaat een elegant diagram met diagonalen voor acties/stabiele toestanden
+ en zijden voor de overgangstoestanden:
+
+\begin{center}
+\begin{tikzpicture}[->, >=stealth', shorten >=1pt,
+ auto, node distance=2cm, on grid, bend angle=45,
+ every state/.style={circle,draw=blue!50,fill=blue!20,thick},
+ background rectangle/.style={fill=orange!10},
+ show background rectangle]
+ \clip (-4.2,-3.2) rectangle (4.2,3.7);
+% \draw[help lines] (-3,-3) grid (3,3);
+ \node [state,initial,accepting, initial below] (U) {U};
+ \node [state] (U1) [above=of U] {U1};
+ \node [state] (op) [left=of U1] {op};
+ \node [state,accepting] (H) [right=of U1] {H};
+ \node [state] (H1) [below=of H] {H1};
+ \node [state] (af) [below=of H1] {af};
+ \node [state] (L1) [ left=of U] {L1};
+ \node [state,accepting] (L) [below=of L1] {L};
+% vanaf uit:
+ \path	(U)	 edge node {in} (U1)
+ 		(U1) edge node {los} (H) edge node {vast} (op)
+ 		(op) edge [bend left] node {los} (H) edge [loop left] node {vast} ();
+%vanaf hoog:
+ \path	(H)	 edge node {in} (H1)
+ 		(H1) edge node {los} (U) edge node {vast} (af)
+ 		(af) edge node {los} (L) edge [loop right] node {vast} ();
+% vanaf laag:
+ \path	(L)	 edge node {in} (L1)
+ 		(L1) edge node {los} (U) edge node {vast} (op);
+\end{tikzpicture}
+\end{center}
+
+De bijbehorende matrix met mogelijke implementatiefuncties ernaast wordt:\\
+
+\begin{minipage}{0.35\textwidth}
+\hspace{2em}\begin{tabular}{|l|c|c|c|}\hline
+   & los  & in   & vast \\ \hline%\hline
+ U & -    & f1() &-     \\ %\hline
+ U1& h()  & -    & f2() \\ %\hline
+ op& h()  & -    & f2() \\ \hline
+ H & -    & h1() & -    \\ %\hline
+ H1& f4() & -    & f3() \\ %\hline
+ af& l()  & -    & f3() \\ \hline
+ L & -    & l1() & -    \\ %\hline
+ L1& f4() & -    & f2() \\ \hline
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.6\textwidth}\begin{itemize}
+\item[f1()] \lstinline[language=C]${return lamp=bewaard, U1;}$
+\item[f2()] \lstinline[language=C]${if(++lamp>max) lamp=max; return op;}$
+\item[f3()] \lstinline[language=C]${if(--lamp<min) lamp=min; return af;}$
+\item[f4()] \lstinline[language=C]${return bewaard=lamp,lamp=0, U;}$
+\item[h()]  \lstinline[language=C]${return H;}$
+\item[h1()] \lstinline[language=C]${return H1;}$
+\item[l()]  \lstinline[language=C]${return L;}$
+\item[l1()] \lstinline[language=C]${return L1;}$
+\end{itemize}
+\end{minipage}
+
+\vspace{2ex}
+In een echt project kan ik bovenstaande optimaliseren en met meer functionaliteit uitbreiden.
+
+%\begin{center}
+%\end{center}
+
+\end{document}

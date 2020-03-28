@@ -3,7 +3,7 @@ demo projects:
 
 The aim of these projects is to help people with a low budget in using
  the RX ucon, by using: 
-1. an RX target board, priced at about 25 Euros, with embedded debugger.
+1. an RX target board, priced around 25 Euros, with embedded debugger.
 2. e2studio, usable free-of-charge.
 3. GCC, usable free-of-charge.
 
@@ -32,6 +32,14 @@ The projects incremental features are:
 1. [demo09](./RTK5RX65Ndemo09): synchronous LED library, uses iopin library
 1. [demo10](./RTK5RX65Ndemo10): program/control button and LED light,
 
+Starting with demo10, two new folders have been added to ease usage of
+code snippets from the demos above in real projects:
+1. [lib][./lib]: gathering of "library" files and Rx65x.h register header
+2. [doc][./doc]: some .pdf-documentation about programming concepts used in the demos,
+   as well as the .tex-sources for these documents.
+   For generating the pdf's you can copy portable versions of TeXmaker of TeXstudio
+   onto a windows computer or use an installer version like MikTeX.
+
 #### RTK5RX65Ndemo10+: to be done
  
 **Background**: Developing both hard- and software, the Renesas
@@ -42,7 +50,5 @@ The projects incremental features are:
   more natural because it starts with the most important things,
   refining details further on.
 
-There seems to be little interest from Renesas in hobbyist developers. 
- It's like they don't understand that when you have experience in using 
- a microcontroller, choosing that ucon for a development project is a 
- natural choice.
+These demos show that despite having a board with hardly any embedded
+IO, you can still develop/test code snippets to be used in real projects.

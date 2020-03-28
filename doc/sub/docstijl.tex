@@ -1,0 +1,154 @@
+% gebruik:
+% \input{docstijl} %eventueel: \input{docstijl.tex}
+%
+% \pagestyle{RvLpagina} vereist macro's voor:
+%	\Docnr
+% 	\Document
+% 	\Uitgever
+% 	\logo
+% \titelblad[1] vereist aanvullend:
+%	\Auteur
+%	\Doctype
+% 	\logovoor
+%
+% ------------------------------------------------------------------------------
+
+%
+% -------- voorkeuren --------------------------------------
+\usepackage[dutch]{babel}%Nederlands
+\usepackage{hyperref}%\url etcetera
+%\usepackage{eurosym}
+\selectlanguage{dutch}
+
+\usepackage[some]{background}% https://www.ctan.org/pkg/background
+%\usepackage{xcolor}% http://www.ukern.de/tex/xcolor.html
+
+%
+% ---- tekeningen: Tikz ist Kein Zeichprogram --------------
+\usepackage{tikz}% http://www.texample.net/media/pgf/builds/pgfmanualCVS2012-11-04.pdf
+\usetikzlibrary{arrows,calc,intersections,patterns,shapes.arrows,through}
+\usetikzlibrary{automata}%toestandsautomaten
+\usetikzlibrary{backgrounds,decorations,fit,petri,positioning,trees}
+%\usetikzlibrary{pathmorphing}
+
+\usepackage{tikz-timing}
+\usetikztiminglibrary[new={char=Q,reset char=R}]{counters}
+
+% kop-/voettekst
+\usepackage{scrlayer-scrpage}% https://www.ctan.org/pkg/scrlayer-scrpage?lang=de
+\defpagestyle{RvLpagina}{%
+	(\textwidth,0pt)				% bovenkoplijn: lengte,dikte
+	{\pagemark\hfill\headmark\hfill\today}% dz, links
+	{\today\hfill\headmark\hfill\pagemark}% dz, rechts
+	{\today\hfill\headmark\hfill\pagemark}% ez
+	(\textwidth,1pt)				% onderkoplijn
+}% pagina-inhoud
+{	(\textwidth,1pt)				% bovenvoetlijn: lengte,dikte
+	{\Uitgever\ \logo\hfill\Document\ \Docnr}% dz, links
+	{\Docnr\ \Document\hfill\Uitgever\ \logo}% dz, rechts
+	{\Docnr\ \Document\hfill\Uitgever\ \logo}% ez
+	(\textwidth,0pt)				% ondervoetlijn
+}
+
+\setlength{\parskip}{0.5ex}
+\setlength{\parindent}{0em}
+
+% ------------------------------------------------------------------------------
+%	macro's
+% ------------------------------------------------------------------------------
+
+%
+% -------- TikZ kleuren, maatlijnen , qfn ------------------
+\tikzset{
+	koper/.style={fill,color=yellow!30,draw=black,very thin},
+	raster/.style={color=gray!50,very thin},
+	switch/.style={fill,color=black!10,draw=black,very thin},
+	knop/.style={fill,color=yellow!40,draw=black},
+}
+\newcommand\maatlijnen{
+	\begin{tikzpicture}[remember picture,overlay]
+	\coordinate (p_lb) at (current page.north west);
+	\draw ($(p_lb)+(0,-1)$) -- +(21,0);
+	\foreach\x in {0,...,210}
+		\draw [very thin] ($(p_lb) + (\x mm,-1)$) -- +(0,-1mm);
+	\foreach\x in {2,...,21}
+		\draw ($(p_lb)+(\x,-1)$) node [anchor=south] {\x} -- ++(0,-2mm);
+	\draw ($(p_lb)+(1,0)$) -- +(0,-29.7);
+	\foreach\y in {0,...,297}
+		\draw [very thin] ($(p_lb) + (1,-\y mm)$) -- +(1mm,0);
+	\foreach\y in {2,...,29}
+		\draw ($(p_lb)+(1,-\y)$) node [anchor=east] {\y} -- ++(2mm,0);
+	\end{tikzpicture}
+}
+\newcommand\qfnchip{% chip
+	\def\hoek{45};
+	\def\vinger{+(0:0.15) arc (0:180:0.15) -- ++(270:0.25) -- ++(0:0.3) -- cycle} 
+	% omtrek + nulvlak + vingers
+	\draw [very thin, rotate=\hoek] (-2,-2) rectangle (2,2);
+	\draw[koper,rotate=\hoek] (-1.35,-1.35) rectangle (1.35,1.35);
+	%\foreach \h in {\hoek,135,...,315}
+	\foreach \y [evaluate=\y as \h using \y+\hoek] in {0,90,...,270}
+		\foreach \x in {-1,-0.5,...,1}
+			\path[koper,rotate=\h] (\x,-1.75) \vinger;
+}
+\newcommand\qfnchipa{% chip, gestyleerd tbv. pagina-achtergrond
+	\coordinate (p) at (0,0);% > parameter van maken?
+	\def\Cu{yellow!30}; \def\Cub{yellow!15}; \def\chip{black!75};% eigen kleuren
+	\def\hoek{45};
+	\def\nulvlak{++(-0.85,-1.35)--++(0:2.2)--++(90:2.7)--++(180:2.7)--++(270:2.2)--cycle}
+	\def\vinger{+(0:0.15) arc (0:180:0.15) -- ++(270:0.25) -- ++(0:0.3) -- cycle}
+	% tekengebied + achtergrond + nulvlak + vingers:
+	\clip [rotate=\hoek,rounded corners=0.2] ($(p)+(-2,-2)$) rectangle ($(p)+(2,2)$);
+	\draw [rotate=\hoek,\chip,fill=\chip,opacity=0.5]
+		($(p)+(-2.1,-2.1)$) rectangle ($(p)+(2.1,2.1)$);
+	\draw[\Cub,fill=\Cub,rotate=\hoek,rounded corners=0.2] (p) \nulvlak;
+	\foreach \y [evaluate=\y as \h using \y+\hoek] in {0,90,...,270}
+		\foreach \x in {-1,-0.5,...,1}
+			\path[\Cub,fill=\Cub,rotate=\h] ($(p)+(\x,-1.75)$) \vinger;
+}
+\newcommand\qfnpcb{% PCB-soldeervlakjes, gestyleerd voor handsolderen
+	\def\hoek{45};
+	\def\vinger{+(0:0.15) arc (0:180:0.15) -- ++(270:0.75) -- ++(0:0.3) -- cycle}
+	\draw[koper,rotate=\hoek] (-1.35,-1.35) rectangle (1.35,1.35);
+	\foreach \y [evaluate=\y as \h using \y+\hoek] in {0,90,...,270}
+		\foreach \x in {-1,-0.5,...,1}
+			\path[koper,rotate=\h] (\x,-1.75) \vinger;
+}
+
+%
+% -------- titelblad en macro's ----------------------------
+\newcommand\Auteur{auteur\\functie\\ \texttt{mail@bedrijf.com} }
+\newcommand\Docnr{het docnr}
+\newcommand\Doctype{het doctype}
+\newcommand\Document{het product}
+\newcommand\Uitgever{het bedrijf}
+\newcommand\logo{\textit{logo}}
+\newcommand\logovoor{\textit{logovoor}}
+
+\DeclareFixedFont{\bigsf}{T1}{phv}{b}{n}{15mm}
+\DeclareFixedFont{\largesf}{T1}{phv}{b}{n}{5mm}
+
+% http://zoonek.free.fr/LaTeX/LaTeX_samples_title/0.html
+\newcommand\titelblad[1]{%
+	\begin{titlepage}
+	\vspace*{11cm}\par
+	\hspace{0.15\linewidth}
+	\begin{minipage}[t]{0.8\linewidth}
+	\begin{abstract}\noindent#1
+	\end{abstract}
+	\end{minipage}
+	\begin{tikzpicture}[remember picture,overlay, line width=3pt]
+		\coordinate (punt1) at ([xshift=80mm,yshift=183mm]current page.south west);
+		\node [anchor=south east, align=right, scale=2] at ($(punt1) + (98mm,70mm)$)
+			{\textrm{\Uitgever}\ \logovoor};
+		\draw ($(punt1) + (0,35mm)$) -- +(0:98mm);
+		\node [anchor=west, align=left] at  ($(punt1) + (0,15mm)$)
+			{\bigsf \Document \\[2mm] \largesf \Doctype};
+		\draw (punt1) -- +(0:98mm);
+		\node [anchor=north west, align=left] at (punt1) {\\documentnr: \Docnr};
+		\coordinate (punt2) at ($(punt1) + (98mm,-113mm)$);
+		\draw [thin] (punt2) -- +(-90:43mm);
+		\node [anchor=east, align=right] at ($(punt2)+(-8mm,-22mm)$) {\large \Auteur};
+	\end{tikzpicture}
+	\end{titlepage}
+}
