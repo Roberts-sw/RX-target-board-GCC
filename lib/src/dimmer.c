@@ -56,6 +56,5 @@ LAMP_STATE (*const DIMMER_AUTOM[LAMP_STATES][DIM_EVENTS])(void)=
 	[L1]={ f4,   0,   f2 },
 };
 
-#undef _x
 #undef REP_WT_
 #undef Hbit

@@ -34,7 +34,7 @@ see [GCC_e2studio_RX65N.md](../GCC_e2studio_RX65N.md)
 - Project > Properties
 - _Properties for RTK5RX65Ndemo10_
   - C/C++ Build > Settings > Compiler > Includes >
-  - click at the `plus' sign next to `Include file directoties'
+  - click at the `plus' sign next to `Include file directories'
 - _Add directory path_
   - Workspace... > 
   - Folder selection: select `lib/src', OK > OK > Apply and Close > Yes >

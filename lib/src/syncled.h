@@ -61,7 +61,7 @@ Sled feedled[]=
 	{PD7,1,1},	//target board LED1: '1'=off, #blinks=1
 };
 Sled alarmled=
-{PB0,1,7};		//option board LED2: '1'=off, #blinks=8
+{PB0,1,7};		//option board LED2: '1'=off, #blinks=7
 Ssyncled leds=
 {	8,0,0,3,{feedled+0, feedled+1, &alarmled}
 };

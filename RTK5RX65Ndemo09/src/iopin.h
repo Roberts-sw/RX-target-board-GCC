@@ -132,19 +132,20 @@ int iopin_read(eIOPIN iopin);
 void iopin_toggle(eIOPIN iopin);
 void iopin_write(eIOPIN iopin, uint8_t ashigh);
 
-
 	/* ---------------------------------------------------------
 	protected (todo)
 	--------------------------------------------------------- */
 	//HW 22. I/O Ports
 #define IO_ (*(struct\
 {	uint8_t _PDR[32],_PODR[32],_PIDR[32],_PMR[32];\
-struct {uint8_t _0,_1;} _ODR[32];\
-uint8_t _PCR[32],_DSCR[32],_fill[0x28],_DSCR2[32];\
+	struct {uint8_t _0,_1;} _ODR[32];\
+	uint8_t _PCR[32],_DSCR[32],_fill[0x28],_DSCR2[32];\
 } volatile *const)0x0008C000)
 
-#define iopin_alldirs(	out0,out1,out2,out3,out4,out5,out6,out7,\
-					out8,out9,outa,outb,outc,outd,oute,outf,	outg,outj)\
+#define iopin_alldirs(\
+	out0,out1,out2,out3,out4,out5,out6,out7,\
+	out8,out9,outa,outb,outc,outd,oute,outf,\
+	outg,outj)\
 do{	IO_._PDR[ 0]=0b01011111|(~0b00000000 & (out0) );\
 	IO_._PDR[ 1]=0b00000000|(~0b00000000 & (out1) );\
 	IO_._PDR[ 2]=0b00000000|(~0b00000000 & (out2) );\
