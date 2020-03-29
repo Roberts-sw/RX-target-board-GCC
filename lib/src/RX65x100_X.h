@@ -1,0 +1,85 @@
+#define CHIP( X )\
+/*Pin Number 100-Pin LFQFP,I/O Port,init,A/D D/A,*/\
+/*X( 4  ,J3 ,IO_LO  ,)*/\
+X( 11   ,37 ,IO_LO  ,)\
+X( 13   ,36 ,IO_LO  ,)\
+X( 15   ,35 ,IO_IN  ,)\
+X( 16   ,34 ,IO_IN  ,)\
+X( 17   ,33 ,IO_LO  ,)\
+X( 18   ,32 ,IO_LO  ,)\
+X( 19   ,31 ,IO_LO  ,)\
+X( 20   ,30 ,IO_IN  ,)\
+X( 21   ,27 ,IO_LO  ,)\
+X( 22   ,26 ,IO_LO  ,)\
+X( 23   ,25 ,IO_LO  ,ADTRG0n)\
+X( 24   ,24 ,IO_LO  ,)\
+X( 25   ,23 ,IO_LO  ,)\
+/*  ,   ,*/\
+X( 26   ,22 ,IO_LO  ,)\
+X( 27   ,21 ,IO_LO  ,)\
+X( 28   ,20 ,IO_LO  ,)\
+X( 29   ,17 ,IO_LO  ,ADTRG1n)\
+X( 30   ,16 ,IO_LO  ,ADTRG0n)\
+X( 31   ,15 ,IO_LO  ,)\
+X( 32   ,14 ,IO_LO  ,)\
+X( 33   ,13 ,IO_LO  ,ADTRG1n)\
+X( 34   ,12 ,IO_LO  ,)\
+X( 39   ,55 ,IO_LO  ,)\
+X( 40   ,54 ,IO_LO  ,)\
+X( 41   ,53 ,IO_LO  ,)\
+X( 42   ,52 ,IO_LO  ,)\
+X( 43   ,51 ,IO_LO  ,)\
+X( 44   ,50 ,IO_LO  ,)\
+X( 45   ,C7 ,IO_HI  ,)\
+X( 46   ,C6 ,IO_LO  ,)\
+X( 47   ,C5 ,IO_LO  ,)\
+X( 48   ,C4 ,IO_LO  ,)\
+X( 49   ,C3 ,IO_HI  ,)\
+X( 50   ,C2 ,IO_IN  ,)\
+/*  ,   ,*/\
+X( 51   ,C1 ,IO_LO  ,)\
+X( 52   ,C0 ,IO_LO  ,)\
+X( 53   ,B7 ,IO_HI  ,)\
+X( 54   ,B6 ,IO_LO  ,)\
+X( 55   ,B5 ,IO_LO  ,)\
+X( 56   ,B4 ,IO_LO  ,)\
+X( 57   ,B3 ,IO_LO  ,)\
+X( 58   ,B2 ,IO_LO  ,)\
+X( 59   ,B1 ,IO_HI  ,)\
+X( 61   ,B0 ,IO_LO  ,)\
+X( 63   ,A7 ,IO_LO  ,)\
+X( 64   ,A6 ,IO_IN  ,)\
+X( 65   ,A5 ,IO_LO  ,)\
+X( 66   ,A4 ,IO_HI  ,)\
+X( 67   ,A3 ,IO_IN  ,)\
+X( 68   ,A2 ,IO_LO  ,)\
+X( 69   ,A1 ,IO_LO  ,)\
+X( 70   ,A0 ,IO_LO  ,)\
+X( 71   ,E7 ,IO_LO  ,AN105)\
+X( 72   ,E6 ,IO_LO  ,AN104)\
+X( 73   ,E5 ,IO_LO  ,AN103)\
+X( 74   ,E4 ,IO_LO  ,AN102)\
+X( 75   ,E3 ,IO_LO  ,AN101)\
+/*  ,   ,*/\
+X( 76   ,E2 ,IO_IN  ,AN100)\
+X( 77   ,E1 ,IO_LO  ,ANEX1)\
+X( 78   ,E0 ,IO_LO  ,ANEX0)\
+X( 79   ,D7 ,IO_LO  ,AN107)\
+X( 80   ,D6 ,IO_LO  ,AN106)\
+X( 81   ,D5 ,IO_LO  ,AN113)\
+X( 82   ,D4 ,IO_LO  ,AN112)\
+X( 83   ,D3 ,IO_LO  ,AN111)\
+X( 84   ,D2 ,IO_LO  ,AN110)\
+X( 85   ,D1 ,IO_LO  ,AN109)\
+X( 86   ,D0 ,IO_LO  ,AN108)\
+X( 87   ,47 ,IO_LO  ,AN007)\
+X( 88   ,46 ,IO_HI  ,AN006)\
+X( 89   ,45 ,IO_LO  ,AN005)\
+X( 90   ,44 ,IO_LO  ,AN004)\
+X( 91   ,43 ,IO_LO  ,AN003)\
+X( 92   ,42 ,IO_LO  ,AN002)\
+X( 93   ,41 ,IO_LO  ,AN001)\
+X( 95   ,40 ,IO_LO  ,AN000)\
+X( 98   ,07 ,IO_LO  ,ADTRG0n)\
+X(100   ,05 ,IO_LO  ,DA1)\
+/*  	,79 ,*/

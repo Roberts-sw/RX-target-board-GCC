@@ -30,17 +30,17 @@ The projects incremental features are:
 1. [demo07](./RTK5RX65Ndemo07): using C++ and C++-wrappers,
 1. [demo08](./RTK5RX65Ndemo08): communication LED,
 1. [demo09](./RTK5RX65Ndemo09): synchronous LED library, uses iopin library
-1. [demo10](./RTK5RX65Ndemo10): program/control button and LED light,
+1. [demo10](./RTK5RX65Ndemo10): push button LED dimmer, automaton concept
 
 Starting with demo10, two new folders have been added to ease usage of
 code snippets from the demos above in real projects:
-1. [lib][./lib]: gathering of "library" files and Rx65x.h register header
+1. [lib][./lib/src]: gathering of "library" files and Rx65x.h register header
 2. [doc][./doc]: some .pdf-documentation about programming concepts used in the demos,
    as well as the .tex-sources for these documents.
    For generating the pdf's you can copy portable versions of TeXmaker of TeXstudio
    onto a windows computer or use an installer version like MikTeX.
 
-#### RTK5RX65Ndemo10+: to be done
+#### RTK5RX65Ndemo11+: to be done
  
 **Background**: Developing both hard- and software, the Renesas
  RX microcontroller (ucon) has some appealing things to me:

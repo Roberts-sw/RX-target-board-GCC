@@ -1,0 +1,174 @@
+\documentclass[a4paper, 11pt, fleqn, twoside]{scrartcl}% https://komascript.de/komascriptbestandteile
+\KOMAoptions{BCOR=10mm, DIV=15}
+
+%-------------------------------------------------------------------------------
+\input{sub/docstijl}
+\input{sub/src-code}
+\lstset{otherkeywords={s08,s16,s32,s64,u08,u16,u32,u64}}
+\lstset{keywordsprefix={0x000}}% opdracht begint met letter, eerste 0 niet mee!
+
+% RvLpagina-macro's:
+%-------------------------------------------------------------------------------
+\renewcommand\Docnr{499\_.201}
+\renewcommand\Document{headers}
+\renewcommand\Uitgever{RvL techniek}
+\renewcommand{\logo}{\tikz[scale=0.1,baseline=-1.5] \qfnpcb;}
+% extra voor titelblad:
+%-------------------------------------------------------------------------------
+\def\date{24 maart 2020}
+\renewcommand\Auteur{\date\\Robert van Lierop\\\texttt{rvl minus techniek at hetnet dot nl}}
+\renewcommand\Doctype{hardware-aansturing}
+\renewcommand{\logovoor}{\tikz[scale=0.2,baseline=-1.5] \qfnchipa;}
+
+\renewenvironment{description}[1][1em]%standaardwaarde
+ {\list{}{\labelwidth=0pt \leftmargin=#1
+  \let\makelabel\descriptionlabel}}
+ {\endlist}
+
+\begin{document}
+%\titelblad{Voor hardware-aansturing raadpleegt men het gegevensblad, 
+%de uitgebreide "hardware manual".
+%Gebruikmaking van enkel de IDE (integrated development environment) en 
+%meegeleverde hulpmiddelen krijgt men veel bronbestanden, waarin men al 
+%snel het overzicht verliest.
+%\\Dit document geeft aan hoe men vanuit het gegevensblad een header kan 
+%maken ten behoeve van compacte eigen broncode.
+%}
+\pagestyle{RvLpagina}
+
+\section{controllerprint}
+Voor deze beschrijving is gebruikgemaakt van een 
+\href{https://www.renesas.com/eu/en/products/software-tools/boards-and-kits/eval-kits/rx-family-target-board.html}{Renesas Target board for RX65N}, 
+ook als onderdeel van de 
+\href{https://www.renesas.com/eu/en/products/software-tools/boards-and-kits/eval-kits/rx65n-cloud-kit.html}{Renesas RX65N Cloud Kit}
+leverbaar.\\
+
+Deze kit bestaat uit 3 printplaten, pdf-link in de afkorting:
+\begin{enumerate}
+\item het "target board" 
+ (\href{https://www.renesas.com/en-eu/doc/products/mpumcu/doc/rx_family/r12um0038ej0100-cloud.pdf}{TB})
+\item het ``option board" 
+ (\href{https://www.renesas.com/en-eu/doc/products/mpumcu/doc/rx_family/001/r12um0039eg0100-cloud.pdf}{OB})
+\item de Silex PMOD Wifi-module\\
+\end{enumerate}
+
+Het target board bevat de R5F565NEDDFP, met kenmerken:
+\begin{description}[1.2em]
+\item[controller] RXv2 120 MHz, instelbaar als Big-endian of Little-endian.
+\item[geheugen] 2MB dual-bank Flash, 32kB data flash, 640kB RAM
+\item[behuizing] LFQFP-100
+\item[verkoop tot] Dec 2033\\
+\end{description}
+
+Mijn eerste ervaringen met het TB zijn als volgt opgedaan:
+\begin{itemize}
+\item Aan de slag met de IDE en ``smart configurator'' om met enkele
+ muisklikken iets te hebben wat compileert en in de controller gezet
+ kan worden. Hiermee wordt aangetoond dat de geleverde kit werkt, maar
+ het leidt niet tot veel inzicht in de microcontroller en benodigdheden
+ voor gebruik in een eigen project.\\
+ Reden is dat het project op deze wijze wordt volgepropt met ``hardware
+ abstraction'', ofwel allerlei routines die andere routines aanroepen
+ om te verbergen wat er onderhuids gebeurt.
+\item Door rustig met de debugger in stappen vanaf reset tot aan `main()'
+ te lopen en code die uitgevoerd wordt te kopi\"eren naar een nieuw bestand,
+ krijgt men daarin een zicht op wat er gebeurt. Volgende stap is het maken
+ van een project met dit nieuwe bestand, en zich daarin concentreren
+ op wat echt nodig is door stukken om te zetten in commentaar en opnieuw
+ compileren/laden/draaien van het overblijvende programma.\\
+ Voor deze stap is inzien van (\href{https://www.renesas.com/eu/en/doc/products/mpumcu/doc/rx_family/001/r01uh0590ej0230-rx651.pdf}{HW})
+ onontbeerlijk.\\
+\end{itemize}
+
+Na deze stappen heb ik instellingen gewijzigd om `gevoel' te krijgen voor
+ de chip. De eerste projecten staan in mijn git-repo 
+\href{https://github.com/Roberts-sw/RX-target-board-GCC}{Roberts-sw/RX-target-board-GCC}.
+
+Kleine projecten zijn het meest overzichtelijk om zelf mee aan de slag te 
+gaan, daarvoor is het handig als download's ook klein zijn.
+
+De .tgz-bestanden van de projecten zijn nog ruim boven de 60kB, terwijl er 
+ amper broncode geschreven is.
+ Nadere analyse leert dat iodefine.h ruim 32.000 regels en 683 kB omvat
+ voor de hardware-registers in zowel Big-endian als Little-endian.
+
+Mijn opzet is om de afhankelijkheid van dat grote bestand te elimineren. 
+Omdat daarmee zeer veel tijd gemoeid is, neem ik telkens delen uit het 
+gegevensblad HW die nodig zijn voor een project-onderdeel, en zet die dan 
+in een header.
+
+Deze header, rx65x.h, zal dan mogelijk in een project het bestand iodefine.h 
+vervangen.
+\clearpage
+
+\subsection{chip-header rx65x.h}
+Het headerbestand poogt met een kleine omvang de tegengekomen registers te
+benoemen in structuren die Endian-onafhankelijk zijn.
+
+Daartoe zijn registerbits uit de data-structuren gehaald en soms als enum
+ vanaf het lsb gedefinieerd, zodat ze met \verb|(1<<bitnaam)| in te passen zijn.
+ Het bestand bevat ook commentaar met verwijzingen naar de desbetreffende 
+hoofdstukken of paragrafen in HW.
+
+De opbouw wordt toegelicht aan de hand van een van de eerste definities:
+
+\begin{lstlisting}[language=C,backgroundcolor=\color{orange!10},framerule=0pt,columns=fixed]
+#define v(pos, sz, ...) u08 _ ## pos[0x ## sz]
+
+	/* ---------------------------------------------------------
+	system
+		HW 3. Operating Modes
+		HW 6. Resets
+		HW 8. Voltage Detection Circuit (LVDA)
+		HW 9. Clock Generation Circuit
+		HW 11. Low Power Consumption
+		HW 13. Register Write Protection Function
+	--------------------------------------------------------- */
+#define SYSTEM_ (*(struct {\
+/*0000*/u16 MDMONR,_0002,_0004,SYSCR0,SYSCR1,_000a,SBYCR,_000e;\
+/*0010*/u32 MSTPCRA,MSTPCRB,MSPCRC,MSTPCRD;\
+/*0020*/u32 SCKCR; u16 SCKCR2,SCKCR3,PLLCR; u08 PLLCR2; v(002b,5);\
+/*0030*/u08 BCKCR,_0031,MOSCCR,SOSCR,LOCOCR_,ILOCOCR,HOCOCR,HOCOCR2;\
+    v(0038,4); u08 OSCOVFSR,_003d,_003e,_003f;\
+/*0040*/u08 OSTDCR,OSTDSR; v(0042,5e);\
+/*00a0*/u08 OPCCR,RSTCKCR,MOSCWTCR,SOSCWTCR; v(00a4,1c);\
+/*00c0*/u08 RSTSR2,_00c1; u16 SWRR; v(00c4,1c);\
+/*00e0*/u08 LVD1CR1,LVD1SR,LVD2CR1,LVD2SR; v(00e4,31a); u16 PRCR; v(0400,c1c);\
+/*101c*/u08 ROMWT; v(101d,b263);\
+/*c280*/u08 DPSBYCR,_c281,DPSIER0,DPSIER1,DPSIER2,DPSIER3,DPSIFR0,DPSIFR1,\
+    DPSIFR2,DPSIFR3,DPSIEGR0,DPSIEGR1,DPSIEGR2,DPSIEGR3,_c28e,_c28f;\
+/*c290*/u08 RSTSR0,RSTSR1,_c292,MOFCR,HOCOPCR,_c295,_c296,LVCMPCR,\
+    LVDLVLR,_c299,LVD1CR0,LVD2CR0; v(c29c,4);\
+/*c2a0*/u08 DPSBKR[32];\
+} volatile *const)0x00080000)
+\end{lstlisting}
+
+De onderdelen zijn:
+\begin{itemize}
+\item \lstinline[language=C]!#define v(pos, sz, ...)!
+ is een macro om een adresgebied over te slaan.
+ In het gebruik zien we \lstinline[language=C]|; v(00a4,1c);|,
+ waarbij hexadecimaal een deel van het beginadres en de bytegrootte zijn
+ opgenomen, evenals ; ter afsluiting van het voorgaande en van dit onderdeel.
+\item \lstinline[language=C]$u08$
+ ``fixed-width'' data types, specifiek voor compiler en chiparchitectuur.
+\item \lstinline[language=C]!/* HW 6. Resets */!
+ HW-verwijzing naar hoofdstuk 6 voor meer informatie
+\item \lstinline[language=C]! #define SYSTEM_ !
+ om los te staan van de iodefine.h-definitie {\footnotesize\verb|SYSTEM|}.
+\item \lstinline[language=C]!/* 0000 */!
+ intern commentaar om het laatste adresdeel aan te duiden
+\item \lstinline[language=C]|MDMONR|
+  registernaam als in HW en iodefine.h, zonder
+  {\footnotesize\verb|.BIT|, \verb|.WORD|} etcetera.
+\item \lstinline[language=C]|,_0002| individuele opvulling van een element
+ aangeduid met het hex-einde van het beginadres.
+\item regeleinde voorafgegaan door \lstinline[language=C]|\| om de struct
+  voort te zetten met een extra regel.
+\item \lstinline[language=C]|volatile|
+ om aan te geven dat de registerinhoud hardwaregestuurd is
+\item \lstinline[language=C]|*const| om aan te geven dat het adres vastligt
+\item \lstinline[language=C]|0x00080000| beginadres van de structuur
+\end{itemize}
+
+\end{document}

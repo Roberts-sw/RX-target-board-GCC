@@ -98,3 +98,24 @@ Learn the keyboard function key shortcuts for stepping through the code.
 End the debugging session with a right-click in the debug-pane at the project
 and choose: `Terminate and Remove`.
 - Yes >
+
+### Create a library project
+For example, create project lib
+- File > New > C/C++ Project > 
+- _Templates for New C/C++ Project_
+  - Renesas RX > 
+  - GCC for Renesas RX C/C++ Library Project > 
+  - Next >
+- _New GCC for Renesas RX Library Project_
+  - Project name: lib
+  - Next >
+- _Select toolchain, device & debug settings_
+  - Language: choose the appropriate type, C or C++
+  - Device Settings: 
+    Target Device: ... > RX600 > RX65N > RX65N - 100 pin > R5F565NEDxFP_DUAL
+  - select Endian setting: Big or Little (default)
+  - Next >
+- _Select Additional CPU Options_
+  - Next >
+- _Summary of project "lib"_
+  - Finish >
