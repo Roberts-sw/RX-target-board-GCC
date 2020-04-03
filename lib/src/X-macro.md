@@ -21,7 +21,7 @@ Steps for getting the X-macro from RX65N-QFP100.csv:
 	  - column I for timer peripherals
 	  - column H for external bus controller
 	  - column G for the RX65N cloud option board
-	  - column F for documentation hints
+	  - column F for alternate MPC pin function init
 	  - column E for the RX65N target board
    1. optional: change column D initialisation to values for your own board.
    1. remove column B as this column annoys the precompiler.

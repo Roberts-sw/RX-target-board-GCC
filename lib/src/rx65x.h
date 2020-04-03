@@ -6,28 +6,11 @@ hardware manual (HW):
 	https://www.renesas.com/eu/en/doc/products/mpumcu/doc/rx_family/001/r01uh0590ej0230-rx651.pdf
 
 Wijzigingen:
+	RvL  3-4-2020	+ bitstructs + Endian + module stop bits
 	RvL 29-3-2020	opname in lib/src
 	RvL 23-3-2020	aanmaak, zie ../../doc/nl/header.pdf
 ------------------------------------------------------------------------- */
 #define NOP()	__asm("nop")//asm not optimized out?
-
-	//fixed-width types (3 characters to define signedness and width) GCC for RX
-typedef signed char s08;
-typedef signed short s16;
-typedef signed long s32;
-typedef signed long long s64;
-typedef unsigned char u08;
-typedef unsigned short u16;
-typedef unsigned long u32;
-typedef unsigned long long u64;
-//#define s08 signed char
-//#define s16 signed short
-//#define s32 signed long
-//#define s64 signed long long
-//#define u08 unsigned char
-//#define u16 unsigned short
-//#define u32 unsigned long
-//#define u64 unsigned long long
 
 	//get-macro:
 #define bf_xtr_(c,p,sz) 	((c) >> (p) & bit_(sz) - 1 )
@@ -55,9 +38,39 @@ typedef unsigned long long u64;
 #define xmin_(x,m)   		if(x<(m) )	x=(m)
 #define xlim_(x,m,M) 		do{xmin_(x,m); else xmax_(x,M);} while(0)
 
-#define v(pos, sz, ...) u08 _ ## pos[0x ## sz]	//void array
+#define v(pos, sz, ...)     u08 _ ## pos[0x ## sz]	//void (positioned) array
+
+	//fixed-width types (3 characters to define signedness and width) GCC for RX
+typedef signed char s08;
+typedef signed short s16;
+typedef signed long s32;
+typedef signed long long s64;
+typedef unsigned char u08;
+typedef unsigned short u16;
+typedef unsigned long u32;
+typedef unsigned long long u64;
 
 	//HW 2. CPU
+	//HW 2.5 Endian
+#ifndef __RX_LITTLE_ENDIAN__
+	//Big-Endian: byte == b7..b0, prefix access type, R=reversed-endian
+#	define  U32_BIT(x) (*(BITS31_0 *)(&(x) ) )
+#	define  U16_BIT(x) (*(BITS15_0 *)(&(x) ) )
+#	define  U08_BIT(x) (*(BITS7_0  *)(&(x) ) )
+#	define RU32_BIT(x) (*(BITS0_31 *)(&(x) ) )
+#	define RU16_BIT(x) (*(BITS0_15 *)(&(x) ) )
+#	define RU08_BIT(x) (*(BITS0_7  *)(&(x) ) )
+#else
+	//Little-Endian: byte == b0..b7, prefix access type, R=reversed-endian
+#	define  U08_BIT(x) (*(BITS0_7  *)(&(x) ) )
+#	define  U16_BIT(x) (*(BITS0_15 *)(&(x) ) )
+#	define  U32_BIT(x) (*(BITS0_31 *)(&(x) ) )
+#	define RU08_BIT(x) (*(BITS7_0  *)(&(x) ) )
+#	define RU16_BIT(x) (*(BITS15_0 *)(&(x) ) )
+#	define RU32_BIT(x) (*(BITS31_0 *)(&(x) ) )
+#endif
+
+
 	//HW 2.6.1 Exception Vector Table
 	//HW 2.6.2 Interrupt Vector Table
 
@@ -77,7 +90,7 @@ typedef unsigned long long u64;
 		HW 11. Low Power Consumption
 		HW 13. Register Write Protection Function
 	--------------------------------------------------------- */
-#define SYSTEM_ (*(struct {\
+#define SYSTEM_ (*(volatile struct {\
 /*0000*/u16 MDMONR,_0002,_0004,SYSCR0,SYSCR1,_000a,SBYCR,_000e;\
 /*0010*/u32 MSTPCRA,MSTPCRB,MSPCRC,MSTPCRD;\
 /*0020*/u32 SCKCR; u16 SCKCR2,SCKCR3,PLLCR; u08 PLLCR2; v(002b,5);\
@@ -93,17 +106,75 @@ typedef unsigned long long u64;
 /*c290*/u08 RSTSR0,RSTSR1,_c292,MOFCR,HOCOPCR,_c295,_c296,LVCMPCR,\
     LVDLVLR,_c299,LVD1CR0,LVD2CR0; v(c29c,4);\
 /*c2a0*/u08 DPSBKR[32];\
-} volatile *const)0x00080000)
+} *const)0x00080000)
 
 enum en_ck_div {CK_1, CK_2, CK_4, CK_8, CK_16, CK_32, CK_64};	//0..6
 enum en_sck {CKS_LOCO,CKS_HOCO,CKS_MAIN,CKS_SUB,CKS_PLL};		//0..4
 enum en_oscovfsr {b00_MOOVF, b01_SOOVF, b02_PLOVF, b03_HCOVF, b04_ILCOVF};
 
+#define MSTP_EXDMAC_  U32_BIT(SYSTEM_.MSTPCRA).B29
+#define MSTP_DMADTC_  U32_BIT(SYSTEM_.MSTPCRA).B28
+#define MSTP_DA_      U32_BIT(SYSTEM_.MSTPCRA).B19
+#define MSTP_S12AD_   U32_BIT(SYSTEM_.MSTPCRA).B17
+#define MSTP_S12AD1_  U32_BIT(SYSTEM_.MSTPCRA).B16
+#define MSTP_CMT01_   U32_BIT(SYSTEM_.MSTPCRA).B15
+#define MSTP_CMT23_   U32_BIT(SYSTEM_.MSTPCRA).B14
+#define MSTP_TPU_     U32_BIT(SYSTEM_.MSTPCRA).B13
+#define MSTP_PPG0_    U32_BIT(SYSTEM_.MSTPCRA).B11
+#define MSTP_PPG1_    U32_BIT(SYSTEM_.MSTPCRA).B10
+#define MSTP_MTU_     U32_BIT(SYSTEM_.MSTPCRA).B9
+#define MSTP_TMR01_   U32_BIT(SYSTEM_.MSTPCRA).B5
+#define MSTP_TMR23_   U32_BIT(SYSTEM_.MSTPCRA).B4
+#define MSTP_CMTW0_   U32_BIT(SYSTEM_.MSTPCRA).B1
+#define MSTP_CMTW1_   U32_BIT(SYSTEM_.MSTPCRA).B0
+
+#define MSTP_SCI0_    U32_BIT(SYSTEM_.MSTPCRB).B31
+#define MSTP_SCI1_    U32_BIT(SYSTEM_.MSTPCRB).B30
+#define MSTP_SCI2_    U32_BIT(SYSTEM_.MSTPCRB).B29
+#define MSTP_SCI3_    U32_BIT(SYSTEM_.MSTPCRB).B28
+#define MSTP_SCI4_    U32_BIT(SYSTEM_.MSTPCRB).B27
+#define MSTP_SCI5_    U32_BIT(SYSTEM_.MSTPCRB).B26
+#define MSTP_SCI6_    U32_BIT(SYSTEM_.MSTPCRB).B25
+#define MSTP_SCI7_    U32_BIT(SYSTEM_.MSTPCRB).B24
+#define MSTP_CRC_     U32_BIT(SYSTEM_.MSTPCRB).B23
+#define MSTP_PDC_     U32_BIT(SYSTEM_.MSTPCRB).B22
+#define MSTP_RIIC0_   U32_BIT(SYSTEM_.MSTPCRB).B21
+#define MSTP_RIIC1_   U32_BIT(SYSTEM_.MSTPCRB).B20
+#define MSTP_USB0_    U32_BIT(SYSTEM_.MSTPCRB).B19
+#define MSTP_RSPI0_   U32_BIT(SYSTEM_.MSTPCRB).B17
+#define MSTP_RSPI1_   U32_BIT(SYSTEM_.MSTPCRB).B16
+#define MSTP_ETHERC0_ U32_BIT(SYSTEM_.MSTPCRB).B15
+#define MSTP_ELC_     U32_BIT(SYSTEM_.MSTPCRB).B9
+#define MSTP_TEMPS_   U32_BIT(SYSTEM_.MSTPCRB).B8
+#define MSTP_DOC_     U32_BIT(SYSTEM_.MSTPCRB).B6
+#define MSTP_SCI12_   U32_BIT(SYSTEM_.MSTPCRB).B4
+#define MSTP_CAN1_    U32_BIT(SYSTEM_.MSTPCRB).B1
+#define MSTP_CAN0_    U32_BIT(SYSTEM_.MSTPCRB).B0
+
+#define MSTP_GLCDC_   U32_BIT(SYSTEM_.MSTPCRC).B29
+#define MSTP_DRW2D_   U32_BIT(SYSTEM_.MSTPCRC).B28
+#define MSTP_SCI8_    U32_BIT(SYSTEM_.MSTPCRC).B27
+#define MSTP_SCI9_    U32_BIT(SYSTEM_.MSTPCRC).B26
+#define MSTP_SCI10_   U32_BIT(SYSTEM_.MSTPCRC).B25
+#define MSTP_SCI11_   U32_BIT(SYSTEM_.MSTPCRC).B24
+#define MSTP_QSPI_    U32_BIT(SYSTEM_.MSTPCRC).B23
+#define MSTP_RSPI2_   U32_BIT(SYSTEM_.MSTPCRC).B22
+#define MSTP_CAC_     U32_BIT(SYSTEM_.MSTPCRC).B19
+#define MSTP_RIIC2_   U32_BIT(SYSTEM_.MSTPCRC).B17
+#define MSTP_STBYRAM_ U32_BIT(SYSTEM_.MSTPCRC).B7
+#define MSTP_RAM2_    U32_BIT(SYSTEM_.MSTPCRC).B2
+#define MSTP_RAM0_    U32_BIT(SYSTEM_.MSTPCRC).B0
+
+#define MSTP_TSIP_    U32_BIT(SYSTEM_.MSTPCRD).B27
+#define MSTP_MMCIF_   U32_BIT(SYSTEM_.MSTPCRD).B21
+#define MSTP_SDHI_    U32_BIT(SYSTEM_.MSTPCRD).B19
+#define MSTP_SDSI_    U32_BIT(SYSTEM_.MSTPCRD).B13
+
 	/* ---------------------------------------------------------
 	icu
 		HW 15. Interrupt Controller (ICUB)
 	--------------------------------------------------------- */
-#define ICU_ (*(struct {\
+#define ICU_ (*(volatile struct {\
 /*7000*/u08 IR[256];	/*16..255*/\
 /*7100*/u08 DTCER[256];	/*26..255*/\
 /*7200*/u08 IER[32];	/*2..31*/ v(7220,c0);\
@@ -150,7 +221,7 @@ v(77d0,60);\
 	SLIAR240,SLIAR241,SLIAR242,SLIAR243,SLIAR244,SLIAR245,SLIAR246,SLIAR247,\
 	SLIAR248,SLIAR249,SLIAR250,SLIAR251,SLIAR252,SLIAR253,SLIAR254,SLIAR255,\
     SLIPRCR, SELEXDR;\
-} volatile *const)0x00087000)
+} *const)0x00087000)
 
 
 	//HW 17. Memory-Protection Unit (MPU)
@@ -169,15 +240,15 @@ v(77d0,60);\
 
 
 	//HW 22. I/O Ports
-//#define IO_ (*(struct\
+//#define IO_ (*(volatile struct\
 {   u08 _PDR[32],_PODR[32],_PIDR[32],_PMR[32];\
     u08 _ODR[32][2],_PCR[32],_DSCR[32],v(c100,28),_DSCR2[32];\
-} volatile *const)0x0008C000)
-#define IO_ (*(struct\
+} *const)0x0008C000)
+#define IO_ (*(volatile struct\
 {	u08 _PDR[32],_PODR[32],_PIDR[32],_PMR[32];\
 	struct {u08 _0,_1;} _ODR[32];\
 	u08 _PCR[32],_DSCR[32],_fill[0x28],_DSCR2[32];\
-} volatile *const)0x0008C000)
+} *const)0x0008C000)
 #define iopin_alldirs(\
 	out0,out1,out2,out3,out4,out5,out6,out7,\
 	out8,out9,outa,outb,outc,outd,oute,outf,\
@@ -205,10 +276,10 @@ do{	IO_._PDR[ 0]=0b01011111|(~0b00000000 & (out0) );\
 
 
 	//HW 23. Multi-Function Pin Controller (MPC)
-#define MPC_ (*(struct/*PmnPFS[]: no PORTH, skip PORTI-number*/\
+#define MPC_ (*(volatile struct/*PmnPFS[]: no PORTH, skip PORTI-number*/\
 {	u08 PFCSE,_01,PFCSS0,PFCSS1,PFAOE0,PFAOE1,PFBCR0,PFBCR1,PFBCR2,PFBCR3,\
 	_0a[4],PFENET,_0f[0x10],PWPR,_20[0x20],PFS[19*8];\
-} volatile *const)0x0008C100)
+} *const)0x0008C100)
 #define PWPR_ (*(volatile u08 *const)0x0008c11f)
 	/*PmnPFS(port,pin): no PORTH, skip PORTI-number*/
 #define PmnPFS(port,pin) ((volatile u08 *const)0x0008C140)[8*(port)+(pin)]
@@ -221,7 +292,7 @@ do{	IO_._PDR[ 0]=0b01011111|(~0b00000000 & (out0) );\
 	/* ---------------------------------------------------------
 	mtu general
 	--------------------------------------------------------- */
-#define MTU_ (*(struct {\
+#define MTU_ (*(volatile struct {\
 /*1200*/u08 _1200[10],TOERA,_120b,_120c,TGCRA,TOCR1A,TOCR2A;\
 /*1210*/u16 _1210,_1212,TCDRA,TDDRA, _1218,_121a,_121c,_121e;\
 /*1220*/u16 TCNTSA,TCBRA,_1224,_1226,_1228,_122a,_122c,_122e;\
@@ -237,7 +308,19 @@ do{	IO_._PDR[ 0]=0b01011111|(~0b00000000 & (out0) );\
     _1a38,_1a39,TITMRB,TITCR2B,TITCNT2B,_1a3d,_1a3e[0x22];\
 /*1a60*/u08 TWCRB,_1a61[15],TMDR2B,_1a71[15];\
 /*1a80*/u08 TSTRB,TSYRB,_1a82,_1a83,TRWERB;\
-} volatile *const)0x000C1200)
+} *const)0x000C1200)
+
+#define MTU_CST0	U08_BIT(MTU_.TSTRA).B0
+#define MTU_CST1	U08_BIT(MTU_.TSTRA).B1
+#define MTU_CST2	U08_BIT(MTU_.TSTRA).B2
+#define MTU_CST3	U08_BIT(MTU_.TSTRA).B6
+#define MTU_CST4	U08_BIT(MTU_.TSTRA).B7
+#define MTU_CST6	U08_BIT(MTU_.TSTRB).B6
+#define MTU_CST7	U08_BIT(MTU_.TSTRB).B7
+#define MTU_CST8	U08_BIT(MTU_.TSTRA).B3
+#define MTU_CSTU5	U08_BIT(MTU_.TSTR).B2
+#define MTU_CSTV5	U08_BIT(MTU_.TSTR).B1
+#define MTU_CSTW5	U08_BIT(MTU_.TSTR).B0
 
 	/* ---------------------------------------------------------
 	mtu0
@@ -251,31 +334,31 @@ struct stMTU012/*common to mtu0..2*/
 };/*=>0x0c*/
 
 	//MTU0: TIORH TIORL, no TSR
-#define MTU0_ (*(struct {/*MTU1: SLIA-source 1-7=TGIA0..D0,TCIV0,TGIE0..F0*/\
+#define MTU0_ (*(volatile struct {/*MTU1: SLIA-source 1-7=TGIA0..D0,TCIV0,TGIE0..F0*/\
 /*1290*/u08 NFCR0,_1291[8],NFCRC,_129a[0x66];\
 /*1300*/struct stMTU012 /*anonymous*/; u16 TGRC,TGRD;u08 _1310[16];\
 /*1320*/u16 TGRE,TGRF;u08 TIER2,_1325,TBTM,_1327,TCR2;\
-} volatile *const)0x000C1290)
+} *const)0x000C1290)
 
 	//MTU1: TIOR, no TIORL
-#define MTU1_ (*(struct {/*SLIA-source 8-11=TGIA1,TGIB1,TGIV1,TGIU1*/\
+#define MTU1_ (*(volatile struct {/*SLIA-source 8-11=TGIA1,TGIB1,TGIV1,TGIU1*/\
 /*1291*/u08 NFCR1,_1292[0xee];\
 /*1380*/struct stMTU012 /*anonymous*/; u08 _138c[4];\
 /*1390*/u08 TICCR,TMDR3,_1392,_1393,TCR2,_1395[11];\
 /*13a0*/u32 TCNTLW,TGRALW,TGRBLW;\
-} volatile *const)0x000C1291)
+} *const)0x000C1291)
 
 	//MTU2: TIOR, no TIORL
-#define MTU2_ (*(struct {/*SLIA-source 12-15=TGIA2,TGIB2,TGIV2,TGIU2*/\
+#define MTU2_ (*(volatile struct {/*SLIA-source 12-15=TGIA2,TGIB2,TGIV2,TGIU2*/\
 /*1292*/u08 NFCR2,_1293[0x16d];\
 /*1400*/struct stMTU012 /*anonymous*/; u08 TCR2;\
-} volatile *const)0x000C1292)
+} *const)0x000C1292)
 
-#define MTU8_ (*(struct{/*SLIA-source 41-45=TGIA8..D8,TCIV8*/\
+#define MTU8_ (*(volatile struct{/*SLIA-source 41-45=TGIA8..D8,TCIV8*/\
 /*1298*/u08 NFCR8,_1299_15ff[0x367];\
 /*1600*/u08 TCR,TMDR1,TIORH,TIORL,TIER,_05,TCR2,_07;\
 /*1608*/u32 TCNT,TGRA,TGRB,TGRC,TGRD;\
-} volatile *const)0x000C1298)
+} *const)0x000C1298)
 
 	/* ---------------------------------------------------------
 	mtu3 + mtu4 interleaved
@@ -289,49 +372,49 @@ struct stMTU32_2
 struct stMTU32_3
 {u16 _10,TCNT,_14,_16,_18,_1a,TGRA,TGRB,_20,_22,_24,_26,TGRC,TGRD;};
 
-#define MTU3_ (*(struct{/*MTU3: SLIA-source 16-20=TGIA3..D3,TCIV3*/\
+#define MTU3_ (*(volatile struct{/*MTU3: SLIA-source 16-20=TGIA3..D3,TCIV3*/\
 /*1200*/struct stMTU36_0 /*anonymous*/; _120a[6];\
 /*1210*/struct stMTU32_2 /*anonymous*/; u08 TSR,_2d,_2e,_2f;\
 /*1230*/u08 _30_37[8],TBTM,_39,_3a_3f[6];\
 /*1240*/u16 _40,_42,_44,_46,_48,_4a;u08 TCR2,_4d,_4e[0x22];\
 /*1270*/u16 _70,TGRE,_74,_76; u08 _77[0x1c],NFCR3;\
-} volatile *const)0x000C1200)
+} *const)0x000C1200)
 
-#define MTU4_ (*(struct{/*MTU4: SLIA-source 21-25=TGIA4..D4,TCIV4*/\
+#define MTU4_ (*(volatile struct{/*MTU4: SLIA-source 21-25=TGIA4..D4,TCIV4*/\
 /*1200*/struct stMTU36_1 /*anonymous*/; _120a[6];\
 /*1210*/struct stMTU32_3 /*anonymous*/; u08 _2c,TSR,_2e,_2f;\
 /*1230*/u08 _30_37[8],_38,TBTM,_3a_3f[6];\
 /*1240*/u16 TADCR,_42,TADCORA,TADCORB,TADCOBRA,TADCOBRB;u08 _4c,TCR2,_4e[0x22];\
 /*1270*/u16 _70,_72,TGRE,TGRF;u08 _77[0x1c],_93,NFCR4;\
-} volatile *const)0x000C1200)
+} *const)0x000C1200)
 
-#define MTU6_ (*(struct{/*MTU6: SLIA-source 30-34=TGIA6..D6,TCIV6*/\
+#define MTU6_ (*(volatile struct{/*MTU6: SLIA-source 30-34=TGIA6..D6,TCIV6*/\
 /*1a00*/struct stMTU36_0 /*anonymous*/; _1a0a[6];\
 /*1a10*/struct stMTU32_2 /*anonymous*/; u08 TSR,_2d,_2e,_2f;\
 /*1a30*/u08 _30_37[8],TBTM,_39,_3a_3f[6];\
 /*1a40*/u16 _40,_42,_44,_46,_48,_4a;u08 TCR2,_4d,_4e,_4f;\
 /*1a50*/u08 TSYCR,_51[0x1f];\
 /*1a70*/u16 _70,TGRE,_74,_76; u08 _77[0x1c],NFCR6;\
-} volatile *const)0x000C1a00)
+} *const)0x000C1a00)
 
-#define MTU7_ (*(struct{/*MTU7: SLIA-source 35-39=TGIA7..D7,TCIV7*/\
+#define MTU7_ (*(volatile struct{/*MTU7: SLIA-source 35-39=TGIA7..D7,TCIV7*/\
 /*1a00*/struct stMTU36_1 /*anonymous*/; _1a0a[6];\
 /*1a10*/struct stMTU32_3 /*anonymous*/; u08 _2c,TSR,_2e,_2f;\
 /*1a30*/u08 _30_37[8],_38,TBTM,_3a_3f[6];\
 /*1a40*/u16 TADCR,_42,TADCORA,TADCORB,TADCOBRA,TADCOBRB;u08 _4c,TCR2,_4e[0x22];\
 /*1a70*/u16 _70,_72,TGRE,TGRF;u08 _77[0x1c],_93,NFCR7;\
-} volatile *const)0x000C1a00)
+} *const)0x000C1a00)
 
 	/* ---------------------------------------------------------
 	mtu5
 	--------------------------------------------------------- */
-#define MTU5_ (*(struct{/*MTU5: SLIA-source 27-29=TGIU5,TGIV5,TGIW5*/\
+#define MTU5_ (*(volatile struct{/*MTU5: SLIA-source 27-29=TGIU5,TGIV5,TGIW5*/\
 /*1a94*/u08 _1A94,NCFR5,_1A96[0X1EA];\
 /*1c80*/u16 TCNTU,TGRU; u08 TCRU,TCR2U,TIORU,_1C87[9];\
 /*1c90*/u16 TCNTV,TGRV; u08 TCRV,TCR2V,TIORV,_1C97[9];\
 /*1ca0*/u16 TCNTW,TGRW; u08 TCRW,TCR2W,TIORW,_1CA7[9];\
 /*1cb0*/u08 _1CB0,_1CB1,TIER,_1CB3,TSTR,_1CB5,TCNTCMPCLR;\
-} volatile *const)0x000C1A94)
+} *const)0x000C1A94)
 
 
 	//HW 25. Port Output Enable 3 (POE3a)
@@ -353,25 +436,62 @@ struct stMTU32_3
 
 
 	//HW 31. Realtime Clock (RTCd)
-#define RTC_ (*(struct {\
+#define RTC_ (*(volatile struct {\
 /*c400*/u08 R64CNT,_c401,RSECCNT,_c403,RMINCNT,_c405,RHRCNT,_c407,\
 	RWKCNT,_c409,RDAYCNT,_c40b,RMONCNT,_c40d; u16 RYRCNT;\
 	u08 RSECAR,_c411,RMINAR,_c413,RHRAR,_c415,RWKAR,_c417,\
 	RDAYAR,_c419,RMONAR,_c41b; u16 RYRAR; u08 RYRAREN,_c41f;\
 /*c420*/u08 _c420,_c421,RCR1,_c423,RCR2,_c425,RCR3,_c427,\
 	RCR4,_c429; u16 RFRH,RFRL; u08 RADJ; v(c42f,11);\
-/*c440*/u08 RTCCR0,_c441,RTCCR1,_c443,RTCCR2; v(c445,d),\
-	RSECCP0,_c453,RMINCP0,_c455,RHRCP0; v(c457,3);\
+/*c440*/u08 RTCCR0,_c441,RTCCR1,_c443,RTCCR2; v(c445,d);\
+/*c452*/u08 RSECCP0,_c453,RMINCP0,_c455,RHRCP0; v(c457,3);\
 /*c45a*/u08 RDAYCP0,_c45b,RMONCP0;v(c45d,5);\
 /*c462*/u08 RSECCP1,_c463,RMINCP1,_c465,RHRCP1; v(c467,3);\
 /*c46a*/u08 RDAYCP1,_c46b,RMONCP1; v(c46d,5);\
 /*c472*/u08 RSECCP2,_c473,RMINCP2,_c475,RHRCP2; v(c477,3);\
 /*c47a*/u08 RDAYCP2,_c47b,RMONCP2;\
-} volatile *const)0x0008C400)
+} *const)0x0008C400)
 
+	/* ---------------------------------------------------------
+	typedef
+	--------------------------------------------------------- */
+
+	//Big-Endian: long=b31..b0, word=b15..b0, byte=b7..b0
+typedef struct st_bits31_24 {
+u32 B31:1;u32 B30:1;u32 B29:1;u32 B28:1;u32 B27:1;u32 B26:1;u32 B25:1;u32 B24:1;
+u32 B23:1;u32 B22:1;u32 B21:1;u32 B20:1;u32 B19:1;u32 B18:1;u32 B17:1;u32 B16:1;
+u32 B15:1;u32 B14:1;u32 B13:1;u32 B12:1;u32 B11:1;u32 B10:1;u32 B9 :1;u32 B8 :1;
+u32 B7 :1;u32 B6 :1;u32 B5 :1;u32 B4 :1;u32 B3 :1;u32 B2 :1;u32 B1 :1;u32 B0 :1;
+} BITS31_0;
+typedef struct st_bits15_0 {
+u16 B15:1;u16 B14:1;u16 B13:1;u16 B12:1;u16 B11:1;u16 B10:1;u16 B9 :1;u16 B8 :1;
+u16 B7 :1;u16 B6 :1;u16 B5 :1;u16 B4 :1;u16 B3 :1;u16 B2 :1;u16 B1 :1;u16 B0 :1;
+} BITS15_0;
+typedef struct st_bits7_0 {
+u08 B7 :1;u08 B6 :1;u08 B5 :1;u08 B4 :1;u08 B3 :1;u08 B2 :1;u08 B1 :1;u08 B0 :1;
+} BITS7_0;
+
+	//Little-Endian: byte=b0..b7, word=b0..b15, long=b0..b31
+typedef struct st_bits0_7 {
+u08 B0 :1;u08 B1 :1;u08 B2 :1;u08 B3 :1;u08 B4 :1;u08 B5 :1;u08 B6 :1;u08 B7 :1;
+} BITS0_7;
+typedef struct st_bits0_15 {
+u16 B0 :1;u16 B1 :1;u16 B2 :1;u16 B3 :1;u16 B4 :1;u16 B5 :1;u16 B6 :1;u16 B7 :1;
+u16 B8 :1;u16 B9 :1;u16 B10:1;u16 B11:1;u16 B12:1;u16 B13:1;u16 B14:1;u16 B15:1;
+} BITS0_15;
+typedef struct st_bits0_31 {
+u32 B0 :1;u32 B1 :1;u32 B2 :1;u32 B3 :1;u32 B4 :1;u32 B5 :1;u32 B6 :1;u32 B7 :1;
+u32 B8 :1;u32 B9 :1;u32 B10:1;u32 B11:1;u32 B12:1;u32 B13:1;u32 B14:1;u32 B15:1;
+u32 B16:1;u32 B17:1;u32 B18:1;u32 B19:1;u32 B20:1;u32 B21:1;u32 B22:1;u32 B23:1;
+u32 B24:1;u32 B25:1;u32 B26:1;u32 B27:1;u32 B28:1;u32 B29:1;u32 B30:1;u32 B31:1;
+} BITS0_31;
+
+	/* ---------------------------------------------------------
+	prototype
+	--------------------------------------------------------- */
 void mcu_clock_deinit(void);
 void LOCO_240kHz(void);//at power-on or after mcu_clock_deinit()!
 void HOCO_16MHz(void);
 void HOCO_PLL_120MHz(void);
 
-#endif//RX65x_H_
+#endif/* RX65x_H_ */

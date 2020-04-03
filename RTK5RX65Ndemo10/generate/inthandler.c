@@ -19,7 +19,6 @@
 /************************************************************************/
 
 #include "interrupt_handlers.h"
-#include "dimmer.h"
 
 // Exception(Supervisor Instruction)
 void INT_Excep_SuperVisorInst(void){/* brk(){  } */}
@@ -631,29 +630,7 @@ void INT_Excep_PERIA_INTA231(void){ }
 void INT_Excep_PERIA_INTA232(void){ }
 
 // PERIA INTA233 => main.c
-void INT_Excep_PERIA_INTA233(void)
-{	extern u16 pwm;
-#define LED1 PD7
-#define PWM_PERIOD	(100*100)	//100,00 [%]
-	if(!iopin_read(LED1) )//LED is on
-	{	if(pwm<PWM_PERIOD)
-		{	iopin_toggle(LED1);//put LED off
-			goto period;
-		}
-		if(MTU5_.TGRU!=PWM_PERIOD)
-period:	{	MTU5_.TGRU=PWM_PERIOD;//	ir_MTIC5U_change(100*100,1);//until 10.000
-			MTU5_.TCNTCMPCLR|=0x04;//counter clear on CMIU5
-		}
-	} else if(pwm)
-		{	iopin_toggle(LED1);//put LED on
-			MTU5_.TGRU=pwm;//	ir_MTIC5U_change(pwm,0);//until pwm
-			MTU5_.TCNTCMPCLR&=~0x04;//no clear on CMIU5
-		}
-
-	extern volatile u08 flag_100ms, cnt_750Hz;
-	if(2*75<=++cnt_750Hz)//2 interrupts per 10000 counts => 2 tellen per 750 Hz
-		cnt_750Hz=0, flag_100ms=1;
-}
+//void INT_Excep_PERIA_INTA233(void)
 
 // PERIA INTA234
 void INT_Excep_PERIA_INTA234(void){ }
@@ -695,19 +672,7 @@ void INT_Excep_PERIA_INTA245(void){ }
 void INT_Excep_PERIA_INTA246(void){ }
 
 // PERIA INTA247 => main.c
-void INT_Excep_PERIA_INTA247(void)
-{	extern u16 pwm;
-	bitclr_(MTU_.TSTRA,3);			//stop MTU8.TCNT
-	MTU8_.TCNT=0x00000000;			//reset TCNT8
-//	MTU8_.TGRA=!pwm?0:pwm-1;
-//	MTU8_.TIORH=0<<4|3<<0;			//MATB_NO, MATA_LT: '0'=aan
-	if(pwm)
-	{	MTU8_.TGRA=pwm-1;			//off after match
-		MTU8_.TIORH=0<<4|3<<0;		//MATA_LT => start as on
-	} else
-		MTU8_.TIORH=0<<4|6<<0;		//MATA_HH => '1'=off
-	bitset_(MTU_.TSTRA,3);			//start MTU8.TCNT
-}
+//void INT_Excep_PERIA_INTA247(void)
 
 // PERIA INTA248
 void INT_Excep_PERIA_INTA248(void){ }

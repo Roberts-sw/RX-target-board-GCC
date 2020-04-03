@@ -13,14 +13,12 @@ test:
 - IDE: Renesas e2-studio 7.7.0
 
 wijzigingen:
-	RvL 28-3-2020	aanmaak
+	RvL 3-4-2020	test
 ------------------------------------------------------------------------- */
-#include <iodefine.h>
 #include "dimmer.h"
-//#include "rx65x.h"
 
 	//TB 5.11 User Switch, p.15
-#define SW1			iopin_read(PB1)
+#define SW1			U08_BIT(IO_._PIDR[0xB]).B1//iopin_read(PB1)
 #define sample(b)	!(b)
 
 	//HW 22. I/O Ports
@@ -38,21 +36,17 @@ void init_peripherals (void)
 
 	//TGIB8 is SLIA-source 42, sources 0 26 40 are reserved,
 	//	so choose offset of 39 from SLIAR208, will be SLIAR247
-	MSTP(MTU8)=0;					//release MTU from stop
-	MTU.TSTRA.BIT.CST8=0;			//stop TCNT8
-	ICU.SLIAR247.BYTE=42;			//SLIAR247 source 42 (TGIB8)
-	IPR(PERIA, INTA247)=15;			//+ interrupt priority
-	MTU8.TCR.BYTE=0<<5|1<<3|2<<0;	//CLR_NONE|CNT_RISE|CKA_16 => 7,5MHz count
-//	MTU8.TCR2.BYTE=0;				//default => TCR determines CKA div factor
-	MTU8.TIER.BYTE=1<<1;			//enable MTU8-TGIEB
-	MTU8.TIORH.BYTE=0<<4|3<<0;		//MATB_NO, MATA_LT: '0'=on, toggle to off
-//	MTU8.TIORL.BYTE=0<<4|0<<0;		//MATD_NO, MATC_NO
-	MTU8.TGRB=PWM_PERIOD-1;			//period=10.000 count => 750Hz
-	MTU8.TGRA=PWM_PERIOD/2-1;//~0L;	//on-time 50,00%
-//	MTU8.TGRC=~0L;					//not used
-//	MTU8.TGRD=~0L;					//not used
-	MPC.PD6PFS.BYTE=8;				//PD6=MTIOC8A
-	PORTD.PMR.BYTE|=0x40;			//... peripheral function
+	MSTP_MTU_=0;				//release MTU from stop
+//	MTU_CST8=0;					//C1280.3:0	stop TCNT8
+	ICU_.SLIAR247=42;			//SLIAR247 source 42 (TGIB8)
+	ICU_.IPR[247]=15;			//+ priority
+	MTU8_.TCR=0<<5|1<<3|2<<0;	//CLR_NONE|CNT_RISE|CKA_16 => 7,5MHz count
+	MTU8_.TIER=1<<1;			//enable MTU8-TGIEB
+	MTU8_.TIORH=0<<4|3<<0;		//MATB_NO, MATA_LT: '0'=on, toggle to off
+	MTU8_.TGRB=PWM_PERIOD-1;	//period=10.000 count => 750Hz
+	MTU8_.TGRA=PWM_PERIOD/2-1;	//on-time 50,00%
+	MPC_.PFS[8*0xD+6]=8;		//MPC pin func PD6=MTIOC8A
+	IO_._PMR[0xD]|=1<<6;		//mode register D: peripheral on bit 6
 
 //LED1 PD7 is MTIC5U-pin
 	//MTU5 has neither output compare nor pwm possibility, see HW p.894
@@ -60,32 +54,20 @@ void init_peripherals (void)
 
 	//TGIU5 is SLIA-source 27, sources 0 26 are reserved,
 	//	so choose offset of 25 from SLIAR208, will be SLIAR233
-//	MSTP(MTU5)=0;					//release MTU from stop, done above
-	MTU5.TSTR.BYTE=0;				//stop MTU5 counters
-	ICU.SLIAR233.BYTE=27;			//SLIAR233 source 27 (TGIU5)
-	IPR(PERIA, INTA233)=15;			//+ interrupt priority
-	MTU5.TIER.BYTE=4;//1<<2;			//enable TGIU5-interrupt
-	MTU5.TCRU.BYTE=2;				//PCLKA/16 = 7,5MHz
-//	MTU5.TCRV.BYTE=0;
-//	MTU5.TCRW.BYTE=0;
-//	MTU5.TCR2U.BYTE=0;
-//	MTU5.TCR2V.BYTE=0;
-//	MTU5.TCR2W.BYTE=0;
-	MTU5.TCNTCMPCLR.BYTE=4;//1<<2;		//MAT_U clear
-//	MTU5.TIORU.BYTE=0;
-//	MTU5.TIORV.BYTE=0;
-//	MTU5.TIORW.BYTE=0;
-	MTU5.TGRU=PWM_PERIOD;			//period=10.000 count => 750Hz
-//	MTU5.TGRV=~0;
-//	MTU5.TGRW=~0;
+//	MTU5_.TSTR=0;				//C1CB4:00
+	ICU_.SLIAR233=27;			//SLIAR233 source 27 (TGIU5)
+	ICU_.IPR[233]=15;			//+ priority
+	MTU5_.TIER=1<<2;			//enable TGIU5-interrupt
+	MTU5_.TCRU=2;				//PCLKA/16 = 7,5MHz
+	MTU5_.TCNTCMPCLR=1<<2;		//MAT_U clear
+	MTU5_.TGRU=PWM_PERIOD;		//period=10.000 count => 750Hz
 }
 
 void start_peripherals (void)
-{	IEN(PERIA, INTA247)=1;			//enable SLIAR247-interrupt
-	MTU.TSTRA.BIT.CST8=1;			//start TCNT8
-
-	IEN(PERIA, INTA233) = 1U;		//enable SLIAR233-interrupt
-    MTU5.TSTR.BYTE=1<<2;//7;//		//start TCNTU5(+TCNTV5+TCNTW5)
+{   ICU_.IER[247/8]|= 1<<247%8;	//enable SLIAR247-interrupt
+    MTU_CST8=1;					//start TCNT8
+    ICU_.IER[233/8]|= 1<<233%8;	//enable SLIAR233-interrupt
+    MTU5_.TSTR=1<<2;			//start TCNTU5
 }
 
 #ifdef CPPAPP
@@ -110,13 +92,8 @@ extern void __main()
 
 u16 pwm;
 volatile u08 flag_100ms, cnt_750Hz;
-void dimmer_run (void)
-{	//sample timing:
-	if( flag_100ms )
-		flag_100ms=0;
-	else return;
-
-	DIMMER_EVENT ev=dimmer_event( sample(SW1) );
+void dimmer_do (void)
+{	DIMMER_EVENT ev=dimmer_event( sample(SW1) );
 	if(NO_DIM_EVENT==ev)
 		return;
 
@@ -137,9 +114,48 @@ int main(void)
 	PFS_relock();
 	SYSTEM_.PRCR = 0xa500;
 
-    start_peripherals();
-
-    do	dimmer_run();
-    while(1);
+    for(start_peripherals(); ; )
+    	if( flag_100ms )
+    	{	flag_100ms=0;
+    		dimmer_do();
+    	}
 return 0;
+}
+
+	/* ---------------------------------------------------------
+	protected
+	--------------------------------------------------------- */
+#include "interrupt_handlers.h"
+
+void INT_Excep_PERIA_INTA233(void)
+{//	extern u16 pwm;
+#define LED1 U08_BIT(IO_._PODR[0xD]).B7//#define LED1 PD7
+	if(!LED1)//if(!iopin_read(LED1) )//LED is on
+	{	if(pwm<PWM_PERIOD)
+		{	LED1=1;//iopin_toggle(LED1);//put LED off
+			goto period;
+		}
+		if(MTU5_.TGRU!=PWM_PERIOD)
+period:	{	MTU5_.TGRU=PWM_PERIOD;
+			MTU5_.TCNTCMPCLR|=0x04;//counter clear on CMIU5
+		}
+	} else if(pwm)
+		{	LED1=0;//iopin_toggle(LED1);//put LED on
+			MTU5_.TGRU=pwm;
+			MTU5_.TCNTCMPCLR&=~0x04;//no clear on CMIU5
+		}
+}
+
+void INT_Excep_PERIA_INTA247(void)
+{	MTU_CST8=0;
+	MTU8_.TCNT=0x00000000;			//reset TCNT8
+	if(pwm)
+	{	MTU8_.TGRA=pwm-1;			//off after match
+		MTU8_.TIORH=0<<4|3<<0;		//MATA_LT => start as on
+	} else
+		MTU8_.TIORH=0<<4|6<<0;		//MATA_HH => '1'=off
+	MTU_CST8=1;
+
+	if(75<=++cnt_750Hz)
+		cnt_750Hz=0, flag_100ms=1;
 }
