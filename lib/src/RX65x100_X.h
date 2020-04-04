@@ -1,6 +1,6 @@
 #define CHIP( X )\
-/*Pin Number 100-Pin LFQFP	I/O Port	init	MPC function	option board	A/D D/A*/\
-/*X( 4 ,J3,IO_LO,  0,-						,)*/\
+/*Pin Number 100-Pin LFQFP	,I/O Port	,init	,MPC function	,option board	,A/D D/A\
+X( 4 ,J3,IO_LO,  0,-						,)*/\
 X( 11,37,IO_LO,  0,-						,)\
 X( 13,36,IO_LO,  0,-						,)\
 X( 15,35,IO_IN,  0,-						,)\
@@ -36,7 +36,7 @@ X( 47,C5,IO_LO,  0,-						,)\
 X( 48,C4,IO_LO,  0,-						,)\
 X( 49,C3,IO_LO,  0,-						,)\
 X( 50,C2,IO_LO,  0,-						,)\
-/*		*/\
+/* SCI5: 115kN8 	*/\
 X( 51,C1,IO_LO,  0,-						,)\
 X( 52,C0,IO_LO, 11,PC0_RTS5_USBSERIAL		,)\
 X( 53,B7,IO_IN, 10,PB7_GROVE_SSDA9			,)\

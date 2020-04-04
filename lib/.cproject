@@ -39,7 +39,7 @@
 							<option id="com.renesas.cdt.managedbuild.gcc.core.option.cpu.dataEndian.2125329221" name="Data Endian" superClass="com.renesas.cdt.managedbuild.gcc.core.option.cpu.dataEndian" useByScannerDiscovery="false" value="com.renesas.cdt.managedbuild.gcc.core.option.dataEndian.big" valueType="enumerated"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.core.option.debug.warnStackSize.692556230" name="Warn if stack size exceeds the limit, in bytes (-Wstack-usage)" superClass="com.renesas.cdt.managedbuild.gcc.core.option.debug.warnStackSize" useByScannerDiscovery="false" value="100" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.renesas.cdt.managedbuild.gcc.core.targetPlatform.2050727022" isAbstract="false" osList="all" superClass="com.renesas.cdt.managedbuild.gcc.core.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/lib}/Debug" id="com.renesas.cdt.managedbuild.gcc.core.builder.1405716649" managedBuildOn="true" name="GCC for Renesas Builder.Debug" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.renesas.cdt.managedbuild.gcc.core.builder"/>
+							<builder buildPath="${workspace_loc:/lib}/Debug" id="com.renesas.cdt.managedbuild.gcc.core.builder.1405716649" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="GCC for Renesas Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.renesas.cdt.managedbuild.gcc.core.builder"/>
 							<tool id="com.renesas.cdt.managedbuild.gcc.rx.tool.libgen.687794636" name="Library Generator" superClass="com.renesas.cdt.managedbuild.gcc.rx.tool.libgen">
 								<option id="com.renesas.cdt.managedbuild.gcc.rx.option.selectlibrary.2140800891" name="Select Library" superClass="com.renesas.cdt.managedbuild.gcc.rx.option.selectlibrary" useByScannerDiscovery="true" value="com.renesas.cdt.managedbuild.gcc.core.option.librarygenerator.settings.selectLibrary.newLib" valueType="enumerated"/>
 								<option id="com.renesas.cdt.managedbuild.gcc.rx.option.libraryType.1355692781" name="Library type" superClass="com.renesas.cdt.managedbuild.gcc.rx.option.libraryType" useByScannerDiscovery="true" value="com.renesas.cdt.managedbuild.gcc.core.option.librarygenerator.settings.libraryType.preBuilt" valueType="enumerated"/>
@@ -110,7 +110,7 @@
 							<option id="com.renesas.cdt.managedbuild.gcc.core.option.cpu.dataEndian.1048918791" name="Data Endian" superClass="com.renesas.cdt.managedbuild.gcc.core.option.cpu.dataEndian" useByScannerDiscovery="false" value="com.renesas.cdt.managedbuild.gcc.core.option.dataEndian.big" valueType="enumerated"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.core.option.debug.warnStackSize.634538531" name="Warn if stack size exceeds the limit, in bytes (-Wstack-usage)" superClass="com.renesas.cdt.managedbuild.gcc.core.option.debug.warnStackSize" useByScannerDiscovery="false" value="100" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.renesas.cdt.managedbuild.gcc.core.targetPlatform.294609770" isAbstract="false" osList="all" superClass="com.renesas.cdt.managedbuild.gcc.core.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/lib}/Release" id="com.renesas.cdt.managedbuild.gcc.core.builder.1188889896" managedBuildOn="true" name="GCC for Renesas Builder.Release" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.renesas.cdt.managedbuild.gcc.core.builder"/>
+							<builder buildPath="${workspace_loc:/lib}/Release" id="com.renesas.cdt.managedbuild.gcc.core.builder.1188889896" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="GCC for Renesas Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.renesas.cdt.managedbuild.gcc.core.builder"/>
 							<tool id="com.renesas.cdt.managedbuild.gcc.rx.tool.libgen.1011593333" name="Library Generator" superClass="com.renesas.cdt.managedbuild.gcc.rx.tool.libgen">
 								<option id="com.renesas.cdt.managedbuild.gcc.rx.option.selectlibrary.1891524969" name="Select Library" superClass="com.renesas.cdt.managedbuild.gcc.rx.option.selectlibrary" useByScannerDiscovery="true" value="com.renesas.cdt.managedbuild.gcc.core.option.librarygenerator.settings.selectLibrary.newLib" valueType="enumerated"/>
 								<option id="com.renesas.cdt.managedbuild.gcc.rx.option.libraryType.1178401545" name="Library type" superClass="com.renesas.cdt.managedbuild.gcc.rx.option.libraryType" useByScannerDiscovery="true" value="com.renesas.cdt.managedbuild.gcc.core.option.librarygenerator.settings.libraryType.preBuilt" valueType="enumerated"/>
@@ -159,4 +159,13 @@
 		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/lib"/>
+		</configuration>
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/lib"/>
+		</configuration>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 </cproject>

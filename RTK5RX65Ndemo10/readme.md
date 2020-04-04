@@ -18,7 +18,8 @@ For a 'natural' response, the lamp will switch on at press, and off at
 
 **Note:**
 
-as both LED-pins don't have pwm-possibility, some creative solutions had to be found. 
+as both LED-pins don't have pwm-possibility, 
+some creative solutions had to be found. 
 They are:
 1. LED0: PD6 can produce a one-shot pulse with an output compare function.
    By having an interrupt at the end of the pulse, a new pulse can be started, 
@@ -31,7 +32,9 @@ They are:
    per period is being used.
 
 uses:
-- target board library: ../lib/
+- target board library: ../lib/.
+  **Be sure to have the same data Endian-setting for the library as 
+  for the project depending on it.**
 
 **create the project as a C++-project with GCC**:
 
@@ -45,13 +48,22 @@ see [GCC_e2studio_RX65N.md](../GCC_e2studio_RX65N.md)
 
 **adding a library path**:
 
-- Project > Properties
-- _Properties for RTK5RX65Ndemo10_
-  - C/C++ Build > Settings > Compiler > Includes >
-  - click at the 'plus' sign next to `Include file directories'
-- _Add directory path_
-  - Workspace... > 
-  - Folder selection: select `lib/src', OK > OK > Apply and Close > Yes >
+1. include files:
+   - Project > Properties
+   - _Properties for RTK5RX65Ndemo10_
+     - C/C++ Build > Settings > Compiler > Includes >
+     - click at the 'plus' sign next to `Include file directories'
+   - _Add directory path_
+     - Workspace... > 
+     - Folder selection: select `lib/src', OK > OK > Apply and Close > Yes >
+1. library file:
+   - Project > Properties
+   - _Properties for RTK5RX65Ndemo10_
+     - C/C++ Build > Settings > Linker > Source >
+     - click at the 'plus' sign next to `Additional input files'
+   - _Add directory path_
+     - Workspace... > 
+     - File selection: select `lib/Debug/src/liblib.a', OK > OK > Apply and Close >
 
 **result:**
  - prog: 3984

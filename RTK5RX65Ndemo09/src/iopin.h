@@ -147,7 +147,7 @@ void iopin_write(eIOPIN iopin, uint8_t ashigh);
 	out8,out9,outa,outb,outc,outd,oute,outf,\
 	outg,outj)\
 do{	IO_._PDR[ 0]=0b01011111|(~0b00000000 & (out0) );\
-	IO_._PDR[ 1]=0b00000000|(~0b00000000 & (out1) );\
+	IO_._PDR[ 1]=0b00000011|(~0b00000000 & (out1) );\
 	IO_._PDR[ 2]=0b00000000|(~0b00000000 & (out2) );\
 	IO_._PDR[ 3]=0b00000000|(~0b00100000 & (out3) );/*P35=NMI*/\
 	IO_._PDR[ 4]=0b00000000|(~0b00000000 & (out4) );\

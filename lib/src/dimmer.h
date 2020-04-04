@@ -7,7 +7,7 @@ Wijzigingen:
 	RvL 29-3-2020	opname in lib/src
 	RvL 28-3-2020	aanmaak, zie ../../doc/nl/automaat.pdf
 ------------------------------------------------------------------------- */
-#include "iopin.h"
+#include "rx65x.h"
 
 	/* ---------------------------------------------------------
 	protected

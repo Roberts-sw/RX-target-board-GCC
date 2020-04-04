@@ -174,6 +174,7 @@ enum en_oscovfsr {b00_MOOVF, b01_SOOVF, b02_PLOVF, b03_HCOVF, b04_ILCOVF};
 	icu
 		HW 15. Interrupt Controller (ICUB)
 	--------------------------------------------------------- */
+enum en_irq_edge {eIRQ_LOW, eIRQ_FALL, eIRQ_RISE, eIRQ_BOTH};
 #define ICU_ (*(volatile struct {\
 /*7000*/u08 IR[256];	/*16..255*/\
 /*7100*/u08 DTCER[256];	/*26..255*/\
@@ -254,7 +255,7 @@ v(77d0,60);\
 	out8,out9,outa,outb,outc,outd,oute,outf,\
 	outg,outj)\
 do{	IO_._PDR[ 0]=0b01011111|(~0b00000000 & (out0) );\
-	IO_._PDR[ 1]=0b00000000|(~0b00000000 & (out1) );\
+	IO_._PDR[ 1]=0b00000011|(~0b00000000 & (out1) );\
 	IO_._PDR[ 2]=0b00000000|(~0b00000000 & (out2) );\
 	IO_._PDR[ 3]=0b00000000|(~0b00100000 & (out3) );/*P35=NMI*/\
 	IO_._PDR[ 4]=0b00000000|(~0b00000000 & (out4) );\
@@ -272,6 +273,7 @@ do{	IO_._PDR[ 0]=0b01011111|(~0b00000000 & (out0) );\
 	IO_._PDR[16]=0b11111111|(~0b00000000 & (outg) );\
 	/*	no PORTH, skip PORTI-number	*/\
 	IO_._PDR[18]=0b11110111|(~0b00000000 & (outj) );/*PJ3*/\
+	/*100-pin:   IO-pins:79 input-only:1*/\
 } while(0)
 
 
@@ -288,6 +290,7 @@ do{	IO_._PDR[ 0]=0b01011111|(~0b00000000 & (out0) );\
 
 
 	//HW 24. Multi-Function Timer Pulse Unit 3 (MTU3a)
+enum en_mtu_edge {eMTU_RISE, eMTU_FALL, eMTU_BOTH};
 
 	/* ---------------------------------------------------------
 	mtu general
@@ -421,6 +424,27 @@ struct stMTU32_3
 
 
 	//HW 26. 16-Bit Timer Pulse Unit (TPUa)
+enum en_tpu_edge {eTPU_FALL, eTPU_RISE, eTPU_BOTH};
+struct stTPU/*common to tpu*/
+{	u08 TCR, TMDR; union {u08 TIOR; u08 TIORH;}; u08 TIORL,TIER,TSR;
+	u16 TCNT,TGRA,TGRB,TGRC,TGRD;
+};/*=>0x0c*/
+#define TPUA_ (*(volatile struct {u08 TSTR,TSYR,_02[6],NFCR[6],_0e,_0f;\
+/*8110*/struct stTPU TPU[6];\
+} *const)0x00088100)
+#define TPU0_ TPUA_.TPU[0]	//TIORH TIORL TGRA TGRB TGRC TGRD
+#define TPU1_ TPUA_.TPU[1]	//TIOR  -     TGRA TGRB -    -
+#define TPU2_ TPUA_.TPU[2]	//TIOR  -     TGRA TGRB -    -
+#define TPU3_ TPUA_.TPU[3]	//TIORH TIORL TGRA TGRB TGRC TGRD
+#define TPU4_ TPUA_.TPU[4]	//TIOR  -     TGRA TGRB -    -
+#define TPU5_ TPUA_.TPU[5]	//TIOR  -     TGRA TGRB -    -
+	//counter start bits
+#define TPU_CST0	U08_BIT(TPUA_.TSTR).B0
+#define TPU_CST1	U08_BIT(TPUA_.TSTR).B1
+#define TPU_CST2	U08_BIT(TPUA_.TSTR).B2
+#define TPU_CST3	U08_BIT(TPUA_.TSTR).B3
+#define TPU_CST4	U08_BIT(TPUA_.TSTR).B4
+#define TPU_CST5	U08_BIT(TPUA_.TSTR).B5
 
 
 	//HW 27. Programmable Pulse Generator (PPG)

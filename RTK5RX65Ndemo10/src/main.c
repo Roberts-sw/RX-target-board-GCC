@@ -13,7 +13,8 @@ test:
 - IDE: Renesas e2-studio 7.7.0
 
 wijzigingen:
-	RvL 3-4-2020	test
+	RvL 4-4-2020	test Little-Endian data (+ lib setting!)
+	RvL 3-4-2020	test Big-Endian data
 ------------------------------------------------------------------------- */
 #include "dimmer.h"
 
@@ -91,7 +92,6 @@ extern void __main()
 #endif 
 
 u16 pwm;
-volatile u08 flag_100ms, cnt_750Hz;
 void dimmer_do (void)
 {	DIMMER_EVENT ev=dimmer_event( sample(SW1) );
 	if(NO_DIM_EVENT==ev)
@@ -106,6 +106,7 @@ void dimmer_do (void)
 	pwm=pct*pct;//gamma 2,00
 }
 
+volatile u08 flag_100ms, cnt_750Hz;
 int main(void)
 {	SYSTEM_.PRCR = 0xa50b;
 	HOCO_PLL_120MHz();
