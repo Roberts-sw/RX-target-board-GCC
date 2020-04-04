@@ -46,8 +46,8 @@ The projects incremental features are:
 
 Starting with demo10, two new folders have been added to ease usage of
 code snippets from the demos above in real projects:
-1. [lib][./lib/src]: gathering of "library" files and Rx65x.h register header
-2. [doc][./doc]: some .pdf-documentation about programming concepts used in the demos,
+1. [lib](./lib/src): gathering of "library" files and Rx65x.h register header
+2. [doc](./doc): some .pdf-documentation about programming concepts used in the demos,
    as well as the .tex-sources for these documents.
    For generating the pdf's you can copy portable versions of TeXmaker of TeXstudio
    onto a windows computer or use an installer version like MikTeX.

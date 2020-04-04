@@ -11,7 +11,7 @@ For the target board the ucon-pins were:
 For the option board, the ucon pins are:
 - USER_SW at pin 19, P31
 - LED1 at pin 61, PB0 (TIOCA3 pin function with pwm)
--(LED2 at pin 59, PB1 (TIOCB3 pin function with pwm) ) incorrect documentation
+- (LED2 at pin 59, PB1 (TIOCB3 pin function with pwm) ) incorrect documentation
 - LED2 at pin 58, PB2 (TIOCC3 pin function with pwm)
 
 uses:
@@ -49,7 +49,7 @@ see [GCC_e2studio_RX65N.md](../GCC_e2studio_RX65N.md)
      - File selection: select `lib/Debug/src/liblib.a', OK > OK > Apply and Close >
 
 **result:**
- - prog: 3838
+ - prog: 3840
  - constant: 1276
  - data: 1
  - bss: 11
