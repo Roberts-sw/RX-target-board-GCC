@@ -43,6 +43,9 @@ The projects incremental features are:
    2. timer-interrupts to drive a pin on and off
 1. [demo11](./RTK5RX65Ndemo11): like demo10 with real pwm using 
    the cloud option board LEDs.
+1. [demo12](./RTK5RX65Ndemo12): Using a serial library for communication with
+   an SCI-module in UART-mode, "bare metal", but easily extensible. 
+   This demo uses SCI5 converted to USB with the cloud option board.
 
 Starting with demo10, two new folders have been added to ease usage of
 code snippets from the demos above in real projects:
@@ -52,7 +55,7 @@ code snippets from the demos above in real projects:
    For generating the pdf's you can copy portable versions of TeXmaker of TeXstudio
    onto a windows computer or use an installer version like MikTeX.
 
-#### RTK5RX65Ndemo12: UART-communication over SCI5, "bare metal" with library.
+#### RTK5RX65Ndemo13: I<sup>2</sup>C-communication with RIIC, "bare metal" with library.
  
 **Background**: Developing both hard- and software, the Renesas
  RX microcontroller (ucon) has some appealing things to me:

@@ -75,19 +75,20 @@ the latest changes. If errors come up, the build won't succeed and corrections
 have to made before a new build will succeed.
 
 Warnings can arise because the standard settings for Workspace and Project are
-a bit picky, for example `if(rc=test_error(params ) ) {...}` will complain with
-a `possible assignment in condition`, while the programmer surely intended that
-the return value from test_error() given to the result code would require some
-additional processing in case it indicated an error by being non-zero.
+ a bit picky, for example `if(rc=test_error(params ) ) {...}` will complain with
+ a `possible assignment in condition`, while surely the coder intended additional
+ processing to be required after a non-zero return value was stored into rc. 
 The standard settings for suggesting parentheses around expressions also tend
-to make the code less readable.
+ to make the code less readable.
 
 If you want to change these settings only for the project, use:
 - Project > Properties >  C/C++ General > Code Analysis
   - Check `Use project settings` and set them here
 
 Workspace-wide settings for the above can be made in:
-- Window > Preferences > _Preferences_ Code Analysis >
+- Window > Preferences > 
+- _Preferences_
+  - C/C++ > Code Analysis >
 
 ### Start a debugging session
 - Run > Debug >

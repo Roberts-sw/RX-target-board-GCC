@@ -14,3 +14,7 @@ I put my reasons for changing the setting between parenthesis
   - Uncheck _Suggested parenthesis around expression_
     (it's no fun reading too many parenthesis)
   - Apply and Close >
+- Windows > Preferences > C/C++ > Code Analysis >
+  - Uncheck _Suspicious semicolon_
+    (for empty statements I like to write ` ;` in stead of `{ ;}`)
+  - Apply and Close >

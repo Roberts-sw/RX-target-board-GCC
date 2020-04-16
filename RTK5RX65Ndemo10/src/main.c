@@ -19,7 +19,7 @@ wijzigingen:
 #include "dimmer.h"
 
 	//TB 5.11 User Switch, p.15
-#define SW1			U08_BIT(IO_._PIDR[0xB]).B1//iopin_read(PB1)
+#define SW1			U08_BIT(IO_._PIDR[0xB]).b1//iopin_read(PB1)
 #define sample(b)	!(b)
 
 	//HW 22. I/O Ports
@@ -46,7 +46,7 @@ void init_peripherals (void)
 	MTU8_.TIORH=0<<4|3<<0;		//MATB_NO, MATA_LT: '0'=on, toggle to off
 	MTU8_.TGRB=PWM_PERIOD-1;	//period=10.000 count => 750Hz
 	MTU8_.TGRA=PWM_PERIOD/2-1;	//on-time 50,00%
-	MPC_.PFS[8*0xD+6]=8;		//MPC pin func PD6=MTIOC8A
+	MPC_._PFS[8*0xD+6]=8;		//MPC pin func PD6=MTIOC8A
 	IO_._PMR[0xD]|=1<<6;		//mode register D: peripheral on bit 6
 
 //LED1 PD7 is MTIC5U-pin
@@ -130,7 +130,7 @@ return 0;
 
 void INT_Excep_PERIA_INTA233(void)
 {//	extern u16 pwm;
-#define LED1 U08_BIT(IO_._PODR[0xD]).B7//#define LED1 PD7
+#define LED1 U08_BIT(IO_._PODR[0xD]).b7//#define LED1 PD7
 	if(!LED1)//if(!iopin_read(LED1) )//LED is on
 	{	if(pwm<PWM_PERIOD)
 		{	LED1=1;//iopin_toggle(LED1);//put LED off

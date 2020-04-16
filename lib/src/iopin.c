@@ -1,120 +1,225 @@
-/* iopin.c
+/* iopin.c 
    ------------------------------------------ TAB-size 4, code page UTF-8 --
 
-wijzigingen:
+Wijzigingen:
+	RvL 11-4-2020	* pin state
 	RvL 29-3-2020	opname in lib/src
 	RvL 17-3-2020	aanmaak
 ------------------------------------------------------------------------- */
 #include "iopin.h"
+#define PROTECT	if(_isiopin(pin) ) ; else return
+#define PROTECTNMI	if(_isiopin(pin)&&NMIPIN!=pin) ; else return
 
 	/* ---------------------------------------------------------
 	private
 	--------------------------------------------------------- */
-#define PROTECT	if(_isiopin(iopin) ) ; else return//if(1) ; else return//
-	//I in port names was skipped, so PORTJ is the 9th after PORT9:
-#define portbit_(iopin)		(!iopin ? 3 : IOPORT[iopin]& 7)
-#define portnr_(iopin)		(!iopin ? 18: IOPORT[iopin]>>4)
+#define NMIPIN				P35
 
-#define ICPIN1(a,...)			a,
-#define IOPIN2(a,b,...)			0x ## b,
-#define IOMODE3(a,b,c,...)		c,
-#define NMIPIN					P35
+enum en_IO //0|1|2|4 + opt.
+{IO_LO=0, IO_HI=1, IO_IN=2,// IO_PE=4,
+ IO_ODN=0b00001000,//Open-Drain N-channel: ODRxy='01'
+ IO_ODP=0b00010000,//Open-Drain P-channel: ODRxy='10'
+ IO_RPU=0b00100000,//R_Pull-Up: PCRx='1'
+ IO_CAP=0b01000000,//drive CAPacity control: DSCRx='1'
+ IO_SPD=0b10000000,//drive SPeeD control: DSCR2x='1'
+};
 
-//static u08 iomode[eIOPINS]= {IO_LO, CHIP(IOMODE3)};	//in application
+// #define PINNRa(a,...) a,
+// u08 const IOPINNRS[IOPINS]={0,CHIP(PINNRa)};
+// #undef PINNRa
+
+#define IOPINb(a,b,...) CH2P_(#b[0])<<3|CH2P_(#b[1]),
+u08 const IOPORT[IOPINS] = {0, CHIP(IOPINb)};
+#undef  IOPINb
+// #define _PORTb(a,b,...)     _PORT(CH2P_(#b[0])),
+// volatile struct st_io *const PORTS[IOPINS]={NULL, CHIP(_PORTb)};
+// #undef  _PORTb
+#define portbit_(pin) (IOPORT[pin]& 7)
+#define portnr_( pin) (IOPORT[pin]>>3)
+	
+#define INITc(a,b,c,...) c,
+u08 const IO_MODE[ IOPINS]={IO_IN,CHIP(INITc)};
+static u08 io_init[IOPINS];
+static u08 io_mode[IOPINS];
+#undef  INITc
+
+#define FUNCe(a,b,c,d,e,...) e,
+u08 const MPC_FUNC[ IOPINS]={0,CHIP(FUNCe)};
+static u08 mpc_func[IOPINS];//Hi-Z
+#undef  FUNCe
+
+#define MSTPd(a,b,c,d,...) MSTP_ ## d ## _ID,
+u08 const MSTP_ID[IOPINS]={0,CHIP(MSTPd)};
+static u08 started[MSTP_IDS-1];
+#undef  MSTPd
+
+#define IODIRMASK (IO_LO|IO_HI|IO_IN)
+static void pinmode (eIOPIN pin, u08 mode)
+{	if(NMIPIN==pin)	return;
+	register unsigned int bit=portbit_(pin);
+	register unsigned int port=portnr_(pin);
+
+	if(!(mode&IO_IN))						//0b------??
+	{	if(PORTREG(port,PDR)&=~(1U<<bit), !(mode&IO_HI))
+			 PORTREG(port,PODR)&=~(1U<<bit);
+		else PORTREG(port,PODR)|= (1U<<bit);
+	} else PORTREG(port,PDR)&=~(1U<<bit);
+
+	if(!(mode&IO_RPU))						//0b--?-----
+		 PORTREG(port,PCR)&=~(1U<<bit);
+	else PORTREG(port,PCR)|= (1U<<bit);
+
+	if(!(mode&IO_SPD))						//0b??------
+	{	if(PORTREG(port,DSCR2)&=~(1U<<bit),!(mode&IO_CAP))
+			 PORTREG(port,DSCR)&=~(1U<<bit);
+		else PORTREG(port,DSCR)|= (1U<<bit);
+	} else PORTREG(port,DSCR2)|= (1U<<bit);	//(DSCR don't care)
+
+	register volatile u08 *const _porto=PORTREG(port,ODR)+bit/4;
+	register unsigned int bito = bit*2%8;
+	if(!(mode&IO_ODN))						//0b----?---
+		 *_porto&=~(1U<<bito+0);
+	else *_porto|= (1U<<bito+0);
+	if(!(mode&IO_ODP))						//0b---?----
+		 *_porto&=~(1U<<bito+1);
+	else *_porto|= (1U<<bito+1);
+}
+
+static void pin_func (eIOPIN pin, u08 func)
+{	if(NMIPIN==pin)	return;
+	//HW 23. Multi-Function Pin Controller (MPC)
+    //HW 23.4.2 Notes on MPC Register Setting:
+    //(1) Settings of PmnPFS should be made while the PMR-bit is set to 0.
+	register int bit=portbit_(pin);
+	register int port=portnr_(pin);
+	if(func)
+		PORTREG(port,PMR)&=~(1U<<bit);
+	PFS_unlock();
+	PmnPFS(port, bit)=func;
+	PFS_relock();
+	if(func)
+		PORTREG(port,PMR)|= (1U<<bit);
+	mpc_func[pin]=func;	//1 <-> 2
+}
+
+static u08 module (eMSTP_ID id, u08 start)
+{	if _is_mstp(id)
+	{	--id;//nr -> array-index
+#define MSTPrb(a,r,b,...)	((#r)[0]-'A'<<5|(b)),//register: nr + bit
+		u08 const ID[MSTP_IDS-1]={MSTP_CTRL(MSTPrb)};
+#undef MSTPrb
+		register unsigned int bit=ID[id]%32;
+		register volatile u32 *mstpcr = &SYSTEM_.MSTPCRA + ID[id]/32;
+	
+	    SYSTEM_.PRCR = 0xa50b;
+		if(start)
+		{	if(!started[id]++)//n pins, 1 start
+				do  *mstpcr &=~(1U<<bit); 	while( (*mstpcr&(1U<<bit)) );
+		}
+		else if(started[id])
+		{	if(!--started[id])//n pins, 1 stop
+				do  *mstpcr |= (1U<<bit);	while(!(*mstpcr&(1U<<bit)) );
+		}
+		SYSTEM_.PRCR = 0xa500;
+		return 1;
+	}	return 0;
+}
 
 	/* ---------------------------------------------------------
 	protected
 	--------------------------------------------------------- */
-u08 const IOPORT[eIOPINS] = {0, CHIP(IOPIN2) };			//PJ3 special
-//u08 const IOINIT[eIOPINS] = {IO_LO, CHIP(IOMODE3)}; 	//use for init
-//char const HEX[] = "0123456789ABCDEF";
-//char const *iopin_name (eIOPIN iopin)
-//{	static char str[4];
-//	if(_isiopin(iopin) )
-//	{	str[0]='P';
-//		str[1]=!iopin?'J':HEX[portnr_(iopin)];
-//		str[2]=HEX[portbit_(iopin)];
-//	} else str[0]=str[1]=str[2]='?';
-//	str[3]='\0';
-//	return (char const *)str;
-//}
+// #define str(s)   #s
+// #define PINNAMEb(a,b,...) str(P##b),
+// u08 const *const IOPINNAMES[IOPINS]={"",CHIP(PINNAMEb)};
+// #undef  PINNAMEb
+
+// #define TARGETf(a,b,c,d,e,f,...) str(f)
+// u08 const *const TARGETPINS[IOPINS]={"",CHIP(TARGETf)};
+// #undef  TARGETf
+
+// #define OPTIONg(a,b,c,d,e,f,g,...) str(g)
+// u08 const *const OPTIONPINS[IOPINS]={"",CHIP(OPTIONg)};
+// #undef  OPTIONg
+
 	/* ---------------------------------------------------------
 	public
 	--------------------------------------------------------- */
-u08 const ICPIN[eIOPINS]  = {4, CHIP(ICPIN1)};			//pin 4 is PJ3
-
-void iopin_dir (eIOPIN iopin, u08 asoutput)
-{	PROTECT;
-	if(!asoutput||NMIPIN==iopin)	//input
-		IO_._PDR[portnr_(iopin)]&=~(1<<portbit_(iopin) );
-	else IO_._PDR[portnr_(iopin)]|=(1<<portbit_(iopin) );
+void iopin_all_deinit (void)
+{	for(eIOPIN pin=0; ++pin<IOPINS; )
+		iopin_deinit(pin);
 }
-void iopin_init (eIOPIN iopin, u08 iomode)
-{	PROTECT;
-	register int mask=1<<portbit_(iopin);
-	register int port=portnr_(iopin);
-
-	if(!(iomode&IO_IN)&&NMIPIN!=iopin)	//0b------??
-	{	if(IO_._PDR[port]|= mask, !(iomode&IO_HI) )
-			IO_._PODR[port]&=~mask;
-		else IO_._PODR[port]|=mask;
-	} else IO_._PDR[port]&=~mask;
-
-	if(!(iomode&IO_PE) )				//0b-----?--
-		IO_._PMR[port]&=~mask;
-	else IO_._PMR[port]|=mask;
-
-	if(!(iomode&IO_PU) )				//0b--?-----
-		IO_._PCR[port]&=~mask;
-	else IO_._PCR[port]|=mask;
-
-	if(!(iomode&IO_SP) )				//0b??------
-	{	if(IO_._DSCR2[port]&=~mask, !(iomode&IO_CA) )
-			IO_._DSCR[port]&=~mask;
-		else IO_._DSCR[port]|=mask;
-	} else IO_._DSCR2[port]|=mask;		//DSCR-setting don't care
-
-	mask=portbit_(iopin)%4*2;			//0 2 4 6
-	iomode=(iomode>>3&3)<<mask;			//0b---??---
-	mask=3<<mask;
-	if(portbit_(iopin)<=3)
-		IO_._ODR[port]._0=IO_._ODR[port]._0 & ~mask | iomode;
-	else
-		IO_._ODR[port]._1=IO_._ODR[port]._1 & ~mask | iomode;
+void iopin_all_init (void)
+{	for(eIOPIN pin=0; ++pin<IOPINS; )
+		iopin_init(pin,IO_MODE[pin]);
 }
-	//HW 23. Multi-Function Pin Controller (MPC)
-void iopin_mpcfunc (eIOPIN iopin, u08 mpcfunc)
-{	PROTECT;
-	if(NMIPIN==iopin)	return;
-	PFS_unlock();//PWPR_&=~0x80; PWPR_|=0x40;	//PmnPFS_writes_deblock();
-//#	define _PFS  ( (volatile u08 *const)0x0008c140)//array
-//	_PFS[8*portnr_(iopin)+portbit_(iopin)]=mpcfunc;
-//#	undef _PFS
-//	MPC_.PFS[8*portnr_(iopin)+portbit_(iopin)]=mpcfunc;
-	PmnPFS(portnr_(iopin), portbit_(iopin))=mpcfunc;
-	PFS_relock();//PWPR_&=~0x40; PWPR_|=0x80;	//PmnPFS_writes_block();
+
+u08 iopin_deinit (eIOPIN pin)
+{	PROTECT 0;
+	if(!mpc_func[pin])	//1 -> 0
+	{	pinmode(pin,IO_IN);
+		io_init[pin]=0;
+	}	return 1;
 }
-int iopin_read (eIOPIN iopin)
+u08 iopin_init (eIOPIN pin, u08 mode)
+{	PROTECT 0;
+	if( io_mode[pin]!=mode )
+	{	pinmode(pin,mode);
+		io_mode[pin]=mode;
+	}	return io_init[pin]=1;	//0 -> 1
+}
+
+u08 iopin_start (eIOPIN pin, u08 func)
+{	PROTECT 0;
+	if( io_init[pin]
+	&& mpc_func[pin]!=func )
+		pin_func(pin,func);
+	return 1;
+}
+u08 iopin_stop (eIOPIN pin)
+{	PROTECT 0;
+	if( io_init[pin] )
+		pin_func(pin,0);
+	return 1;
+}
+
+void iopin_dir (eIOPIN pin, u08 asoutput)
+{	PROTECTNMI;	if(mpc_func[pin]) return;//(tied to peripheral)
+	register unsigned int bit=portbit_(pin);
+	register unsigned int port=portnr_(pin);
+	if(!asoutput)
+	{	PORTREG(port,PDR)|= (1U<<bit);
+		io_mode[pin]=io_mode[pin]&~IODIRMASK;
+	} else
+	{	PORTREG(port,PDR)&=~(1U<<bit);
+		io_mode[pin]=io_mode[pin]&~IODIRMASK|IO_IN;
+	}
+}
+int iopin_read (eIOPIN pin)
 {	PROTECT -1;
-	return IO_._PIDR[portnr_(iopin)] >> portbit_(iopin) & 1;
+	return PORTREG(portnr_(pin),PIDR) >> (portbit_(pin)&1U);
 }
-void iopin_toggle (eIOPIN iopin)
-{	PROTECT;
-	if(NMIPIN!=iopin)
-		IO_._PODR[portnr_(iopin)]^= (1<<portbit_(iopin) );
+void iopin_toggle (eIOPIN pin)
+{	PROTECTNMI;	if(mpc_func[pin]) return;//(tied to peripheral)
+	PORTREG(portnr_(pin),PODR)^= (1U<<portbit_(pin));
+	io_mode[pin]^= IO_HI;
+
 }
-void iopin_write (eIOPIN iopin, u08 ashigh)
-{	PROTECT;
-	if(!ashigh||NMIPIN==iopin)	//low or input-only
-		IO_._PODR[portnr_(iopin)]&=~(1<<portbit_(iopin) );
-	else IO_._PODR[portnr_(iopin)]|=(1<<portbit_(iopin) );
+void iopin_write (eIOPIN pin, u08 ashigh)
+{	PROTECTNMI;	if(mpc_func[pin]) return;//(tied to peripheral)
+	if(!ashigh)
+	{	PORTREG(portnr_(pin),PODR)&=~(1U<<portbit_(pin));
+		io_mode[pin]&=~IO_HI;
+	} else
+	{	PORTREG(portnr_(pin),PODR)|= (1U<<portbit_(pin));
+		io_mode[pin]|= IO_HI;
+	}
 }
 
-#undef NMIPIN
-#undef IOMODE3
-#undef IOPIN2
-#undef ICPIN1
-
-#undef portnr_
-#undef portbit_
-#undef PROTECT
+u08 module_start (eMSTP_ID id) {return module(id,1);}
+u08 module_stop ( eMSTP_ID id) {return module(id,0);}
+#undef  IODIRMASK
+#undef  portnr_
+#undef  portbit_
+#undef  NMIPIN
+#undef  PROTECTNMI
+#undef  PROTECT

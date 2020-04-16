@@ -1,21 +1,22 @@
-RTK65RX65Ndemo11:
+RTK65RX65Ndemo12:
 ---
-This demo is like demo10, only it now uses the cloud option board, where the
- LED pins have pwm-possibility.
+This demo uses the cloud option board to communicate via serial-to-USB with
+ a PC serial port program.
 
-For the target board the ucon-pins were:
-- SW1 at pin 59, PB1
-- LED0 at pin 80, PD6 (using MTU8A output compare and TGIB8-interrupt)
-- LED1 at pin 79, PD7 (using software pin drive and TGIU5-interrupt)
+For creating the program a serial port library has been created in an
+ object-orientated manner in C language, such that the routines can be used
+ for all 13 SCI-modules of the RX65N.
+ C language is used for the library so one can explicitly see what 
+ is going on "behind the scenes" from the source code.
 
-For the option board, the ucon pins are:
-- USER_SW at pin 19, P31
-- LED1 at pin 61, PB0 (TIOCA3 pin function with pwm)
-- (LED2 at pin 59, PB1 (TIOCB3 pin function with pwm) ) incorrect documentation
-- LED2 at pin 58, PB2 (TIOCC3 pin function with pwm)
+The ucon pins being used have functions at the option board:
+- LED1 at pin 61, PB0
+- LED2 at pin 58, PB2
+- TxD5 at pin 66, PA4
+- RxD5 at pin 67, PA3
 
 uses:
-- target board library: ../lib/.
+- target/option board library: ../lib/.
   Be sure to have the same data Endian-setting for the library as 
   for the project depending on it.**
 
@@ -49,8 +50,8 @@ see [GCC_e2studio_RX65N.md](../GCC_e2studio_RX65N.md)
      - File selection: select `lib/Debug/src/liblib.a', OK > OK > Apply and Close >
 
 **result:**
- - prog: 3840
- - constant: 1276
- - data: 1
- - bss: 11
+ - prog: 9376
+ - constant: 1552
+ - data: 1132
+ - bss: 312
  - other: 28

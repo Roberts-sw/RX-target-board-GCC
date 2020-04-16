@@ -21,8 +21,8 @@ wijzigingen:
 #include "dimmer.h"
 
     //TB 5.11 User Switch, p.15
-#define USER_SW    U08_BIT(IO_._PIDR[0x3]).B1
-#define sample(b) !(b)
+#define USER_SW    U08_BIT(IO_._PIDR[0x3]).b1
+#define sample(btn) !(btn)
 
     //HW 22. I/O Ports
 #define PWM_PERIOD  (100*100)//100,00 [%]
@@ -46,8 +46,8 @@ void init_peripherals (void)
 
     //HW 23.4.2 Notes on MPC Register Setting:
     //  PFS-settings should be made while the PMR-bit is 0
-    MPC_.PFS[8 * 0xB + 0]=3;            //PB2 => TIOCA3
-    MPC_.PFS[8 * 0xB + 2]=3;            //PB0 => TIOCC3
+    MPC_._PFS[8 * 0xB + 0]=3;           //PB2 => TIOCA3
+    MPC_._PFS[8 * 0xB + 2]=3;           //PB0 => TIOCC3
     IO_._PMR[0xB]|=1<<2|1<<0;           //peripheral function for PB2 and PB0
 }
 
