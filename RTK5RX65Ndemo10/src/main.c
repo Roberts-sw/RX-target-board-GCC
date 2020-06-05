@@ -13,10 +13,12 @@ test:
 - IDE: Renesas e2-studio 7.7.0
 
 wijzigingen:
+	RvL 6-6-2020	+ "RX65x100_X.h"
 	RvL 4-4-2020	test Little-Endian data (+ lib setting!)
 	RvL 3-4-2020	test Big-Endian data
 ------------------------------------------------------------------------- */
 #include "dimmer.h"
+#include "RX65x100_X.h"
 
 	//TB 5.11 User Switch, p.15
 #define SW1			U08_BIT(IO_._PIDR[0xB]).b1//iopin_read(PB1)

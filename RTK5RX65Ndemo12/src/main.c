@@ -13,6 +13,7 @@ test:
 - IDE: Renesas e2-studio 7.7.0
 
 wijzigingen:
+    RvL 2-6-2020    micros()
     RvL 12-4-2020    test
 ------------------------------------------------------------------------- */
 //#include <iodefine.h>
@@ -111,7 +112,7 @@ static u32 volatile Micros=0, Millis=0;
 protected
 --------------------------------------------------------- */
 #include "interrupt_handlers.h"
-u32 micros (void) {return Micros+ticks()*34953>>16;}//(x / 1,875)
+u32 micros (void) {return Micros+(ticks()*34953>>16);}//(x / 1,875)
 u32 millis (void) {return Millis;}
 
 void INT_Excep_CMT0_CMI0(void) {Micros+=1000, ++Millis;}

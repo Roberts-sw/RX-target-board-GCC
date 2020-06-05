@@ -6,6 +6,14 @@ hardware manual (HW):
 	https://www.renesas.com/eu/en/doc/products/mpumcu/doc/rx_family/001/r01uh0590ej0230-rx651.pdf
 
 Wijzigingen:
+	RvL 5-6-2020	several changes, fixes:
+	* undo_popi(), MTU_, OFSM_
+	+ DTC_, POE_
+	- iopin_alldirs(...) => RX65x100_X.h (* X-macro.md)
+	- macro's => gcc-rx.h
+	RvL 28-5-2020	+ CAC,
+	* deca?(i,m), hecto?(i,m), kilo?(i,m) => da?(i,d), h?(i,d), k?(i,d)
+	RvL 02-6-2020	* MTU3_, MTU6_, MTU4_, MTU7_
 	RvL 10-4-2020	+ atom()
 	RvL  5-4-2020	+ TMR, CMT, CMTW, SCIg, SCIh, SCIi, IPR_NR()
 	RvL  4-4-2020	+ TPUa
@@ -13,6 +21,8 @@ Wijzigingen:
 	RvL 29-3-2020	opname in lib/src
 	RvL 23-3-2020	aanmaak, zie ../../doc/nl/header.pdf
 ------------------------------------------------------------------------- */
+#include "gcc-rx.h"
+
 #define NOP()	__asm("nop")//asm not optimized out?
 #define sei() __builtin_rx_setpsw('I')
 #define cli() __builtin_rx_clrpsw('I')
@@ -20,95 +30,12 @@ Wijzigingen:
 
 static __inline__ int cli_ret_1( void ) {return cli(), 1;}
 #define pushi_do_()	int di_=isNoInterrupts(), do_=cli_ret_1()
-#define undo_popi()	do_=0, di_ ? do_=0 : sei()
+#define undo_popi()	di_ ? do_=0 : sei(), do_=0
 #define atom()\
 	for(pushi_do_(); do_; undo_popi() )
 
-	//get-macro (C: constant/variable):
-#define BF_XTR_(c,p,sz) ((c)>> (p) & BIT_(sz)-1)//RxV3: BFMOV, !dlsb
-#define BIT_(C)         (1ULL<< (C) )
-#define BITGET_(C,B)    ((C) & BIT_(B) )//BITGET_(~0,3) == 8
-#define BITVAL_(C,B)    ((C)>> (B) & 1) //BITVAL_(~0,3) == 1
-#define ELEMENTS_(_C)	(sizeof(_C)/sizeof(*_C) )
-#define GETLSB1(C)      ((C) & -(C) )		//-C == ~C+1
-#define GET_(C,M)       ((C) & (M) )
-#define MASK_(P,SZ)     (BIT_(SZ)-1<<(P) )
-#define MAXINDEX_(_C)   (ELEMENTS_(_C)-1)
-#define XOR_(C,B)       ((C) ^ (B) )
-
-	//set-macro (v: variable):
-#define bf_ins_(v,p,sz,n)   ((v)^= ((n)&(BIT_(sz)-1))<<(p) )//RxV3: BFMOV, !slsb
-#define bitclr_(v,b)        ((v)&=~BIT_(b) )
-#define bitinv_(v,b)        ((v)^= BIT_(b) )
-#define bitset_(v,b)        ((v)|= BIT_(b) )
-#define vclr_(v,m)          ((v)&=~(m) )
-#define vclrset_(v,m,n)     ((v) = (v) & ~(m)|(n) )
-#define vinsert_(v,m,n)     ((v)^= (m) & XOR(v,n) )
-#define vlsbclr_(v)         ((v)&= (v)-1)
-#define vset_(v,m)          ((v)|= (m) )
-#define vxor_(v,m)          ((v)^= (m) )
-#define xmax(x,M)           if(x>(M) )	x=(M)
-#define xmin(x,m)           if(x<(m) )	x=(m)
-#define xlim(x,m,M)         do{xmin(x,m); else xmax(x,M) } while(0)
-
 #define v(pos, sz, ...)     u08 _ ## pos[0x ## sz]	//void (positioned) array
 
-#define deca(i, ...) (10  * (i) )
-#define deca1(i, m ) (10  *((i)+(m)%10  *1) )
-#define hecto(i,...) (100 * (i) )
-#define hecto1(i,m ) (100 *((i)+(m)%10 *10) )
-#define hecto2(i,m ) (100 *((i)+(m)%100 *1) )
-#define kilo(i, ...) (1000* (i) )
-#define kilo1(i, m ) (1000*((i)+(m)%10*100) )
-#define kilo2(i, m ) (1000*((i)+(m)%100*10) )
-#define kilo3(i, m ) (1000*((i)+(m)%1000*1) )
-
-	//fixed-width types (3 characters to define signedness and width) GCC for RX
-typedef signed char s08;
-typedef signed short s16;
-typedef signed long s32;
-typedef signed long long s64;
-typedef unsigned char u08;
-typedef unsigned short u16;
-typedef unsigned long u32;
-typedef unsigned long long u64;
-
-	//HW 2. CPU
-	//HW 2.5 Endian
-#ifndef __RX_LITTLE_ENDIAN__
-	//Big-Endian: byte == b7..b0, prefix access type, R=reversed-endian
-#	define  U32_BIT(x) (*(BITS31_0 *)(&(x) ) )
-#	define  U16_BIT(x) (*(BITS15_0 *)(&(x) ) )
-#	define  U08_BIT(x) (*(BITS7_0  *)(&(x) ) )
-#	define RU32_BIT(x) (*(BITS0_31 *)(&(x) ) )
-#	define RU16_BIT(x) (*(BITS0_15 *)(&(x) ) )
-#	define RU08_BIT(x) (*(BITS0_7  *)(&(x) ) )
-#else
-	//Little-Endian: byte == b0..b7, prefix access type, R=reversed-endian
-#	define  U08_BIT(x) (*(BITS0_7  *)(&(x) ) )
-#	define  U16_BIT(x) (*(BITS0_15 *)(&(x) ) )
-#	define  U32_BIT(x) (*(BITS0_31 *)(&(x) ) )
-#	define RU08_BIT(x) (*(BITS7_0  *)(&(x) ) )
-#	define RU16_BIT(x) (*(BITS15_0 *)(&(x) ) )
-#	define RU32_BIT(x) (*(BITS31_0 *)(&(x) ) )
-#endif
-	//HW 2.6.1 Exception Vector Table: 124B
-	//HW 2.6.2 Interrupt Vector Table: 1024B
-
-
-	//HW 5. I/O-Registers, p. 187
-	//  (2) Notes on writing to I/O registers:
-#define IOREG_WRITE(r,v)	do{(r)=(v); if((r)!=(v)) NOP();} while(0)
-#define WRITE_CHK(r,v)		do (r)=(v); while( (r)!=(v) )
-
-
-	//HW 7. Option-Setting Memory (OFSM)
-#define OFSM_ (*(struct {u32 MDE,OFS0,OFS1,_0c, TMINF,_14[3], BANKSEL,_24[7],\
-/*0x40*/SPCC,_44,TMEF,_4c, OSIS,_54[4],FAW,_68[2], ROMCODE,_74[2],TSCDR,\
-/*0x80*/_80[4], UIDR0,UIDR1,UIDR2,UIDR3;\
-} *const)0xFE7F5D00)
-
-	
 	/* ---------------------------------------------------------
 	system
 		HW 3. Operating Modes
@@ -198,6 +125,22 @@ enum en_oscovfsr {b00_MOOVF, b01_SOOVF, b02_PLOVF, b03_HCOVF, b04_ILCOVF};
 #define MSTP_SDHI_    U32_BIT(SYSTEM_.MSTPCRD).b19
 #define MSTP_SDSI_    U32_BIT(SYSTEM_.MSTPCRD).b13
 
+	//HW 7. Option-Setting Memory (OFSM)
+	/* ---------------------------------------------------------
+	--------------------------------------------------------- */
+#define OFSM_ (*(volatile struct\
+{   u32 MDE,OFS0,OFS1,_0c, TMINF,_14[3], BANKSEL,_24[7],\
+/*40*/SPCC,_44,TMEF,_4c, OSIS,_54[4],FAW,_68[2], ROMCODE,_74[2],TSCDR,\
+/*80*/UIDR0,UIDR1,UIDR2,UIDR3;\
+} *const)0xFE7F5D00)
+
+	//HW 10. Clock Frequency Accuracy Measurement Circuit (CAC)
+	/* ---------------------------------------------------------
+	--------------------------------------------------------- */
+#define CAC_ (*(volatile struct {u08 CACR0,CACR1,CACR2,CAICR,CASTR,_05;\
+/*b006*/u16 CAULVR,CALLVR,CACNTBR;\
+} *const)0x0008b000)
+
 	//HW 15. Interrupt Controller (ICUB)
 	/* ---------------------------------------------------------
 	p.456: Table 15.3 Interrupt Sources for Software Configurable Interrupt B 
@@ -209,15 +152,9 @@ enum en_oscovfsr {b00_MOOVF, b01_SOOVF, b02_PLOVF, b03_HCOVF, b04_ILCOVF};
 		ICU_.IR[x]=0;              //clear interrupt
 		bitset_(ICU_.IER[x/8],x%8);//enable interupt
 	--------------------------------------------------------- */
-enum en_irq_edge {eIRQ_LOW, eIRQ_FALL, eIRQ_RISE, eIRQ_BOTH};
-	//VEC->IPR: 16 18->0 21->1 23->2 26->3 28..31->4..7 32+->32+
-#define IPR_NR(vec) ((vec)>=32?(vec):(vec)<28?((vec)-16)/3:(vec)-24)
-#define intvec_prio_enable(v, p) do{ICU_.IR[v]=0;  ICU_.IPR[IPR_NR(v)]=(p);\
-	bitset_(ICU_.IER[(v)/8],(v)%8);\
-} while(0)
 #define ICU_ (*(volatile struct {\
-/*7000*/u08 IR[256];	/*16..255, p.465*/\
-/*7100*/u08 DTCER[256];	/*26..255, p.465*/\
+/*7000*/u08 IR[256];	/*16..255, 15.2.1 Interrupt Request Register n (IRn)*/\
+/*7100*/u08 DTCER[256];	/*26..255, 15.2.7 DTC Transf.Req.En.Reg.n (DTCERn)*/\
 /*7200*/u08 IER[32];	/* 2..31,  p.465*/ v(7220,c0);\
 /*72e0*/u08 SWINTR,SWINT2R; v(7222,e);\
 /*72f0*/u16 FIR; v(72f2,e);\
@@ -263,6 +200,12 @@ v(77d0,60);\
 	SLIAR248,SLIAR249,SLIAR250,SLIAR251,SLIAR252,SLIAR253,SLIAR254,SLIAR255,\
     SLIPRCR, SELEXDR;\
 } *const)0x00087000)
+enum en_irq_edge {eIRQ_LOW, eIRQ_FALL, eIRQ_RISE, eIRQ_BOTH};
+	//VEC->IPR: 16 18->0 21->1 23->2 26->3 28..31->4..7 32+->32+
+#define IPR_NR(vec) ((vec)>=32?(vec):(vec)<28?((vec)-16)/3:(vec)-24)
+#define intvec_prio_enable(v, p) do{ICU_.IR[v]=0;  ICU_.IPR[IPR_NR(v)]=(p);\
+	bitset_(ICU_.IER[(v)/8],(v)%8);\
+} while(0)
 
 
 	//HW 16. Buses
@@ -270,6 +213,13 @@ v(77d0,60);\
 	//HW 18. DMA Controller (DMACAa)
 	//HW 19. EXDMA Controller (EXDMACa)
 	//HW 20. Data Transfer Controller (DTCb)
+	/* ---------------------------------------------------------
+	--------------------------------------------------------- */
+#define DTC_ (*(volatile struct {\
+/*2400*/u08 DTCCR,_01[3]; u32 DTCVBR; u08 DTCADMOD,_9[3],DTCST,_d; u16 DTCSTS;\
+/*2410*/u32 DTCIBR; u08 DTCOR,_15; u16 DTCSQE; u32 DTCDISP;\
+} *const)0x00082400)
+
 	//HW 21. Event Link Controller (ELC)
 
 
@@ -284,42 +234,14 @@ struct st_io
 {/*0x00*/u08 _PDR[32],_PODR[32],_PIDR[32],_PMR[32],_ODR[32][2];/*interleaved*/
  /*0xc0*/u08 _PCR[32],_DSCR[32],_offset_100h_[0x28],_DSCR2[32];
 };
-#define _PORT(n) ((volatile struct st_io *const)(0x0008c000+(n)))
+//#define _PORT(n) ((volatile struct st_io *const)(0x0008c000+(n)))
 #define CH2P_(c)/* character-to-port_number */\
 	((c)<='9' ? (c)-'0' : ('i'<=((c)|0x20) ? 9 : 10) + ((c)|0x20)-'a')
-	//register (bit) access:
-#define ODR0(n)           PORTREG(n,ODR)[0]
-#define ODR1(n)           PORTREG(n,ODR)[1]
-#define PORTREG(n,reg)    (_PORT(0)->_## reg[n])
-#define ODR0BIT(n,bn)     (U08_BIT(ODR0(n)).b ## bn)
-#define ODR1BIT(n,bn)     (U08_BIT(ODR1(n)).b ## bn)
-#define PORTBIT(n,reg,bn) (U08_BIT(PORTREG(n,reg)).b ## bn)
-
-#define IO_ (*_PORT(0))
-#define iopin_alldirs(\
-	out0,out1,out2,out3,out4,out5,out6,out7,\
-	out8,out9,outa,outb,outc,outd,oute,outf,\
-	outg,outj)\
-do{	IO_._PDR[CH2P_('0')]=0b01011111|(~0b00000000 & (out0) );\
-	IO_._PDR[CH2P_('1')]=0b00000011|(~0b00000000 & (out1) );\
-	IO_._PDR[CH2P_('2')]=0b00000000|(~0b00000000 & (out2) );\
-	IO_._PDR[CH2P_('3')]=0b00000000|(~0b00100000 & (out3) );/*P35=NMI*/\
-	IO_._PDR[CH2P_('4')]=0b00000000|(~0b00000000 & (out4) );\
-	IO_._PDR[CH2P_('5')]=0b11000000|(~0b00000000 & (out5) );\
-	IO_._PDR[CH2P_('6')]=0b11111111|(~0b00000000 & (out6) );\
-	IO_._PDR[CH2P_('7')]=0b11111111|(~0b00000000 & (out7) );\
-	IO_._PDR[CH2P_('8')]=0b11111111|(~0b00000000 & (out8) );\
-	IO_._PDR[CH2P_('9')]=0b11111111|(~0b00000000 & (out9) );\
-	IO_._PDR[CH2P_('A')]=0b00000000|(~0b00000000 & (outa) );\
-	IO_._PDR[CH2P_('B')]=0b00000000|(~0b00000000 & (outb) );\
-	IO_._PDR[CH2P_('C')]=0b00000000|(~0b00000000 & (outc) );\
-	IO_._PDR[CH2P_('D')]=0b00000000|(~0b00000000 & (outd) );\
-	IO_._PDR[CH2P_('E')]=0b00000000|(~0b00000000 & (oute) );\
-	IO_._PDR[CH2P_('F')]=0b11111111|(~0b00000000 & (outf) );\
-	IO_._PDR[CH2P_('G')]=0b11111111|(~0b00000000 & (outg) );\
-	IO_._PDR[CH2P_('J')]=0b11110111|(~0b00000000 & (outj) );/*PJ3*/\
-	/*100-pin:           IO-pins:79 input-only:1*/\
-} while(0)
+#define IO_ (*(volatile struct st_io *const)0x0008c000)
+#define ODR0(n)           IO_.ODR[n][0]
+#define ODR1(n)           IO_.ODR[n][1]
+#define PORTREG(n,reg)    (IO_._## reg[n])
+#define PORTBIT(n,reg,bn) (U08_BIT(IO_._## reg[n]).b ## bn)
 
 #define MPC_ (*(volatile struct\
 {	u08 PFCSE,_01,PFCSS0,PFCSS1,PFAOE0,PFAOE1,PFBCR0,PFBCR1,PFBCR2,PFBCR3,\
@@ -342,99 +264,120 @@ do{	IO_._PDR[CH2P_('0')]=0b01011111|(~0b00000000 & (out0) );\
 		30-34 =TGIA6 TGIB6 TGIC6 TGID6 TGIV6
 		35-39 =TGIA7 TGIB7 TGIC7 TGID7 TGIV7
 		41-45 =TGIA8 TGIB8 TGIC8 TGID8 TGIV8
-	--------------------------------------------------------- */
-	//general:
-enum en_mtu_edge {eMTU_RISE, eMTU_FALL, eMTU_BOTH};
-#define MTU_ (*(volatile struct {\
-/*1200*/u08 _1200[10],TOERA,_120b,_120c,TGCRA,TOCR1A,TOCR2A;\
-/*1210*/u16 _1210,_1212,TCDRA,TDDRA, _1218,_121a,_121c,_121e;\
-/*1220*/u16 TCNTSA,TCBRA,_1224,_1226,_1228,_122a,_122c,_122e;\
-/*1230*/u08 TITCR1A,TITCNT1A,TBTERA,_1233,TDERA,_1235,TOLBRA,_1237,\
-    _1238,_1239,TITMRA,TITCR2A,TITCNT2A,_123d,_123e[0x22];\
-/*1260*/u08 TWCRA,_1261[15],TMDR2A,_1271[15];\
-/*1280*/u08 TSTRA,TSYRA,TCSYSTR,_1283,TRWERA,_1285[0x77b];\
-\
-/*1a00*/u08 _1a00[10],TOERB,_1a0b,_1a0c,_1a0d,TOCR1B,TOCR2B;\
-/*1a10*/u16 _1a10,_1a12,TCDRB,TDDRB, _1a18,_1a1a,_1a1c,_1a1e;\
-/*1a20*/u16 TCNTSB,TCBRB,_1a24,_1a26,_1a28,_1a2a,_1a2c,_1a2e;\
-/*1a30*/u08 TITCR1B,TITCNT1B,TBTERB,_1a33,TDERB,_1a35,TOLBRB,_1a37,\
-    _1a38,_1a39,TITMRB,TITCR2B,TITCNT2B,_1a3d,_1a3e[0x22];\
-/*1a60*/u08 TWCRB,_1a61[15],TMDR2B,_1a71[15];\
-/*1a80*/u08 TSTRB,TSYRB,_1a82,_1a83,TRWERB;\
-} *const)0x000C1200)
 
+	mtu interleaved with mtu3+4 / mtu6+7
+	mtu0: TIORH TIORL, no TSR
+	mtu1: TIOR, no TIORL
+	mtu2: TIOR, no TIORL
+	--------------------------------------------------------- */
+struct stMTU
+{   v(200,a),TOERA,_20b[2],TGCRA,TOCR1A,TOCR2A;//210
+    u16 _210[2],TCDRA,TDDRA,_218[4],TCNTSA,TCBRA,_224[4];//22c
+    v(22c,4),TITCR1A,TITCNT1A,TBTERA,_233,TDERA,_235,TOLBRA,_237[3],TITMRA,
+            TITCR2A,TITCNT2A,_23d[3];//240
+    u16 _240[6]; u08 _24c[0x14],TWCRA,_261[0xf],TMDR2A,_271;//272
+    u08 _272[0xe],TSTRA,TSYRA,TCSYSTR,_283,TRWERA,_285[0x77b];//a00
+    \
+    v(a00,a),TOERB,_a0b[3],TOCR1B,TOCR2B;//a10	
+    u16 _a10[2],TCDRB,TDDRB,_a18[4],TCNTSB,TCBRB,a24[4];//a2c
+    v(a2c,4),TITCR1B,TITCNT1B,TBTERB,_a33,TDERB,_a35,TOLBRB,_a37[3],TITMRB,
+             TITCR2B,TITCNT2B,_a3d[3];//a40
+    u16 _a40[6]; u08 _a4c[0x14],TWCRB,_a61[0xf],TMDR2B,_a71;//a72
+	u08 _a72[0xe],TSTRB,TSYRB,_a82,_a83,TRWERB;
+};
+struct stMTU36
+{	u08 TCR,_01,TMDR1,_03,TIORH,TIORL,_06,_07,TIER,_09,_0a[6];//10
+	u16 TCNT,_12[3],TGRA,TGRB,_1c[4],TGRC,TGRD,_28[2];//2c
+	u08 TSR,_2d[0xb],TBTM,_39[0x7];//40
+	u16 _40[6]; u08 TCR2,_4d[3], TSYCR,_51[0x21];//72 
+	u16 TGRE,_74,_76; v(78,1b); union {u08 NFCR3; u08 NFCR6;};
+};
+struct stMTU47
+{   u08 _00,TCR,_02,TMDR1,_04,_05,TIORH,TIORL,_08,TIER,_0a[6];//10
+    u16 _10,TCNT,_14[4],TGRA,TGRB,_20[4],TGRC,TGRD;//2c
+    u08 _2c,TSR,_2e[0xb],TBTM,_3a[6];//40
+    u16 TADCR,_42,TADCORA,TADCORB,TADCOBRA,TADCOBRB;u08 _4c,TCR2,_4e[0x24];//72
+    u16 _72,TGRE,TGRF; v(78,1b),_93; union {u08 NFCR4; u08 NFCR7;};
+};
+struct stMTU0
+{   u08 NFCR0,_291[8],NFCRC,_29a[0x66],TCR,TMDR1,TIORH,TIORL,TIER,_305;//306
+    u16 TCNT,TGRA,TGRB,TGRC,TGRD; v(310,10);//320
+    u16 TGRE,TGRF; u08 TIER2,_325,TBTM,_327,TCR2;
+};
+struct stMTU1
+{   u08 _290, NFCR1,_292[0xee],    TCR,TMDR1,TIOR,_383,TIER,TSR;//386
+    u16 TCNT,TGRA,TGRB,_38c,_38e; u08 TICCR,TMDR3,_392[2],TCR2,_395[0xb];//3a0
+    u32 TCNTLW,TGRALW,TGRBLW;
+};
+struct stMTU2
+{   u08 _290[2], NFCR2,_293[0x16d],TCR,TMDR1,TIOR,_403,TIER,TSR;//406
+    u16 TCNT,TGRA,TGRB; u08 TCR2;
+};
+struct stMTU8
+{   u08 _290[8], NFCR8,_299[0x367],TCR,TMDR1,TIORH,TIORL,TIER,_605,TCR2,_607;
+    u32 TCNT,TGRA,TGRB,TGRC,TGRD;
+};
+struct stMTU5
+{   u08 _a90[5],NCFR5,_a96[0X1ea];//c80
+    u16 TCNTU,TGRU; u08 TCRU,TCR2U,TIORU,_c87[9];//c90
+    u16 TCNTV,TGRV; u08 TCRV,TCR2V,TIORV,_c97[9];//ca0
+    u16 TCNTW,TGRW; u08 TCRW,TCR2W,TIORW,_ca7[9];//cb0
+    u08 _cb0,_cb1,TIER,_cb3,TSTR,_cb5,TCNTCMPCLR;
+};
+#define MTU_  (*(volatile struct stMTU   *const)0x000C1200)
+#define MTU3_ (*(volatile struct stMTU36 *const)0x000c1200)
+#define MTU4_ (*(volatile struct stMTU47 *const)0x000c1200)
+#define MTU0_ (*(volatile struct stMTU0  *const)0x000c1290)
+#define MTU1_ (*(volatile struct stMTU1  *const)0x000c1290)
+#define MTU2_ (*(volatile struct stMTU2  *const)0x000c1290)
+#define MTU8_ (*(volatile struct stMTU8  *const)0x000c1290)
+#define MTU6_ (*(volatile struct stMTU36 *const)0x000c1a00)
+#define MTU7_ (*(volatile struct stMTU47 *const)0x000c1a00)
+#define MTU5_ (*(volatile struct stMTU5  *const)0x000C1A90)
+	//counter start
 #define MTU_CST0	U08_BIT(MTU_.TSTRA).b0
 #define MTU_CST1	U08_BIT(MTU_.TSTRA).b1
 #define MTU_CST2	U08_BIT(MTU_.TSTRA).b2
+#define MTU_CST8	U08_BIT(MTU_.TSTRA).b3
 #define MTU_CST3	U08_BIT(MTU_.TSTRA).b6
 #define MTU_CST4	U08_BIT(MTU_.TSTRA).b7
 #define MTU_CST6	U08_BIT(MTU_.TSTRB).b6
 #define MTU_CST7	U08_BIT(MTU_.TSTRB).b7
-#define MTU_CST8	U08_BIT(MTU_.TSTRA).b3
-#define MTU_CSTU5	U08_BIT(MTU_.TSTR).b2
-#define MTU_CSTV5	U08_BIT(MTU_.TSTR).b1
-#define MTU_CSTW5	U08_BIT(MTU_.TSTR).b0
+#define MTU_CSTU5	U08_BIT(MTU5_.TSTR).b2
+#define MTU_CSTV5	U08_BIT(MTU5_.TSTR).b1
+#define MTU_CSTW5	U08_BIT(MTU5_.TSTR).b0
 
-	/* ---------------------------------------------------------
-	mtu0: TIORH TIORL, no TSR
-	mtu1: TIOR, no TIORL
-	mtu2: TIOR, no TIORL
-	mtu8: TIORH TIORL, no TSR
-	--------------------------------------------------------- */
-struct stMTU/*common to mtu0..2*/
-{	u08 TCR,TMDR1; union {u08 TIOR; u08 TIORH;}; u08 TIORL,TIER,TSR;
-	u16 TCNT,TGRA,TGRB;
-};/*=>0x0c*/
-#define MTU0_ (*(volatile struct {u08 NFCR0,_1291[8],NFCRC,_129a[0x66];\
-/*1300*/struct stMTU /*anonymous*/; u16 TGRC,TGRD;\
-/*1310*/u08 _1310[16]; u16 TGRE,TGRF;u08 TIER2,_1325,TBTM,_1327,TCR2;\
-} *const)0x000c1290)
-#define MTU1_ (*(volatile struct {u08 _1290,NFCR1,_1292[0xee];\
-/*1380*/struct stMTU /*anonymous*/; u16 _0c, _0e;\
-/*1390*/u08 TICCR,TMDR3,_12,_13,TCR2,_15[0x0b]; u32 TCNTLW,TGRALW,TGRBLW;\
-} *const)0x000c1290)
-#define MTU2_ (*(volatile struct {u08 _1290,_1291,NFCR2,_1293[0x16d];\
-/*1400*/struct stMTU /*anonymous*/; u08 TCR2;\
-} *const)0x000c1290)
+	//general:
+enum en_mtu_tcr_cclr {CLR_N, CLR_A, CLR_B, CLR_S, CLRN2, CLR_C, CLR_D, CLRS2};
+enum en_mtu_tcr_edge {eMTU_RISE, eMTU_FALL, eMTU_BOTH};
+enum en_mtu_tcr_tpsc {CKB_1, CKB_4, CKB_16, CKB_64, CLKA, CLKB, CLKC, CLKD};
+#define mtu_tcr_val(c,e,s) ((c)<<5&0xe0 | (e)<<3&0x18 | (s)&0x07)
+#define mtu_tcr2_val(p,s)  (              (p)<<3&0x18 | (s)&0x07)
 
-	//interleaved: mtu3/4 mtu6/7
-struct stMTU36 {u08 TCR,_01,TMDR1,_03,TIORH,TIORL,_06,_07,TIER,_09,_0a[6];\
-/*0x10*/u16 TCNT,_12,_14,_16,TGRA,TGRB,_1c,_1e,_20,_22,TGRC,TGRD,_28,_2a;\
-/*0x2c*/u08 TSR,_2d,_2e,_2f,_30[8],TBTM,_39,_3a[0x12],TCR2,_4d[3];	};
-#define MTU3_ (*(volatile struct {struct stMTU36 /*anonymous*/;\
-u08 _50,  _51[0x1f]; u16 _70,TGRE,_74,_76; u08 _77[0x1c]; u08 NFCR3;\
-} *const)0x000c1200)
-#define MTU6_ (*(volatile struct {struct stMTU36 /*anonymous*/;\
-u08 TSYCR,_51[0x1f]; u16 _70,TGRE,_74,_76; u08 _77[0x1c]; u08 NFCR6;\
-} *const)0x000c1a00)
-
-struct stMTU47 {u08 _00,TCR,_02,TMDR1,_04,_05,TIORH,TIORL,_08,TIER,_0a[6];\
-/*0x10*/u16 _10,TCNT,_14,_16,_18,_1a,TGRA,TGRB,_20,_22,_24,_26,TGRC,TGRD;\
-/*0x2c*/u08 _2c,TSR,_2e,_2f,_30[8],_38,TBTM,_3a[6];\
-/*0x40*/u16 TADCR,_42,TADCORA,TADCORB,TADCOBRA,TADCOBRB;u08 _4c,TCR2,_4e[0x22];\
-/*0x70*/u16 _70,_72,TGRE,TGRF; u08 _77[0x1c],_93;	};
-#define MTU4_ (*(volatile struct {struct stMTU47 /*anonymous*/; u08 NFCR4;\
-} *const)0x000c1200)
-#define MTU7_ (*(volatile struct {struct stMTU47 /*anonymous*/; u08 NFCR7;\
-} *const)0x000c1a00)
-
-	//mtu5: input capture
-#define MTU5_ (*(volatile struct{u08 _1A94,NCFR5,_1A96[0X1EA];\
-/*1c80*/u16 TCNTU,TGRU; u08 TCRU,TCR2U,TIORU,_1C87[9];\
-/*1c90*/u16 TCNTV,TGRV; u08 TCRV,TCR2V,TIORV,_1C97[9];\
-/*1ca0*/u16 TCNTW,TGRW; u08 TCRW,TCR2W,TIORW,_1CA7[9];\
-/*1cb0*/u08 _1CB0,_1CB1,TIER,_1CB3,TSTR,_1CB5,TCNTCMPCLR;\
-} *const)0x000C1A94)
-
-	//mtu8: 32-bit
-#define MTU8_ (*(volatile struct{u08 _1290[8],NFCR8,_1299[0x367];\
-/*1600*/u08 TCR,TMDR1,TIORH,TIORL,TIER,_05,TCR2,_07;\
-/*1608*/u32 TCNT,TGRA,TGRB,TGRC,TGRD;\
-} *const)0x000c1290)
-
+enum en_tior5func
+{	IC5RISE=17, IC5FALL, IC5BOTH,
+	LOW_TR=25,LOW_CR,LOW_BOTH,
+	HIGH_TR=29,HIGH_CR,HIGH_BOTH
+};
+#define tior5val(func)	((func)<<0&0x1f)//mtu5
+enum en_tior_func
+{		OC_LL=1, OC_LH, OC_LT,
+		OC_HL=5, OC_HH, OC_HT,
+	IC_RISE, IC_FALL, IC_BOTH,
+	IC_01=12//pin 0A 0B 0C 0D 1A 1B 1D
+};
+#define tiorhval(tiocb,tioca)	((tiocb)<<4 & 0xf0 | (tioca) & 0x0f)//mtu0,3,4
+#define tiorlval(tiocd,tiocc)	((tiocd)<<4 & 0xf0 | (tiocc) & 0x0f)
+#define tior_val(tiocb,tioca)	((tiocb)<<4 & 0xf0 | (tioca) & 0x0f)//mtu1..2
 
 	//HW 25. Port Output Enable 3 (POE3a)
-
+	/* ---------------------------------------------------------
+	--------------------------------------------------------- */
+#define POE_ (*(volatile struct {u16 ICSR1,OCSR1,ICSR2,OCSR2,ICSR3;\
+/*4ca*/u08 SPOER,POECR1; u16 POECR2,_ce;\
+/*4d0*/u16 POECR4,POECR5,_d4,ICSR4,ICSR5,ALR1,ICSR6,_de[3];\
+/*4e4*/u08 MOSELR1,MOSELR2,M3SELR,M4SELR1,M4SELR2,_e9,M6SELR;\
+} *const)0x0008c4c0)
 
 	//HW 26. 16-Bit Timer Pulse Unit (TPUa)
 	/* ---------------------------------------------------------
@@ -501,12 +444,14 @@ struct stTMR01 { u16 _00,_02,TCORA,TCORB,TCNT,TCCR; };//16-bit access
 		 1- 2 = CMI2 CMI3
 	--------------------------------------------------------- */
 struct st_CMTch {u16 CMCR,CMCNT,CMCOR;};
-#define CMT_ (*(volatile struct {u16 CMSTR0,_02[3],_08[3],_0e;\
-u16 CMSTR1,_12[3],_18[3];} *const)0x00088000)
-#define CMT0_ (*(struct st_CMTch *)(CMT_._02))
-#define CMT1_ (*(struct st_CMTch *)(CMT_._08))
-#define CMT2_ (*(struct st_CMTch *)(CMT_._12))
-#define CMT3_ (*(struct st_CMTch *)(CMT_._18))
+#define CMT_ (*(volatile struct {\
+    u16 CMSTR0; struct st_CMTch ch01[2]; u16 _0e;\
+    u16 CMSTR1; struct st_CMTch ch23[2];\
+} *const)0x00088000)
+#define CMT0_ CMT_.ch01[0]
+#define CMT1_ CMT_.ch01[1]
+#define CMT2_ CMT_.ch23[0]
+#define CMT3_ CMT_.ch23[1]
 #define CMT_CST0	U16_BIT(CMT_.CMSTR0).b0
 #define CMT_CST1	U16_BIT(CMT_.CMSTR0).b1
 #define CMT_CST2	U16_BIT(CMT_.CMSTR1).b0
@@ -599,41 +544,6 @@ struct {u08 _0[4],SSRFIFO,_5[0x9]; UHL FTDR,FRDR,_12,FCR,FDR,LSR,CDR;u08 SPTR;};
 	//sci12: SCIh, PCLKB, extended serial mode: start/information frame
 #define SCI12_ (*(volatile uSCIh *const)0x0008b300)
 
-
-	/* ---------------------------------------------------------
-	typedef
-	--------------------------------------------------------- */
-
-	//Big-Endian: long=b31..b0, word=b15..b0, byte=b7..b0
-typedef struct st_bits31_24 {
-u32 b31:1;u32 b30:1;u32 b29:1;u32 b28:1;u32 b27:1;u32 b26:1;u32 b25:1;u32 b24:1;
-u32 b23:1;u32 b22:1;u32 b21:1;u32 b20:1;u32 b19:1;u32 b18:1;u32 b17:1;u32 b16:1;
-u32 b15:1;u32 b14:1;u32 b13:1;u32 b12:1;u32 b11:1;u32 b10:1;u32 b9 :1;u32 b8 :1;
-u32 b7 :1;u32 b6 :1;u32 b5 :1;u32 b4 :1;u32 b3 :1;u32 b2 :1;u32 b1 :1;u32 b0 :1;
-} BITS31_0;
-typedef struct st_bits15_0 {
-u16 b15:1;u16 b14:1;u16 b13:1;u16 b12:1;u16 b11:1;u16 b10:1;u16 b9 :1;u16 b8 :1;
-u16 b7 :1;u16 b6 :1;u16 b5 :1;u16 b4 :1;u16 b3 :1;u16 b2 :1;u16 b1 :1;u16 b0 :1;
-} BITS15_0;
-typedef struct st_bits7_0 {
-u08 b7 :1;u08 b6 :1;u08 b5 :1;u08 b4 :1;u08 b3 :1;u08 b2 :1;u08 b1 :1;u08 b0 :1;
-} BITS7_0;
-
-	//Little-Endian: byte=b0..b7, word=b0..b15, long=b0..b31
-typedef struct st_bits0_7 {
-u08 b0 :1;u08 b1 :1;u08 b2 :1;u08 b3 :1;u08 b4 :1;u08 b5 :1;u08 b6 :1;u08 b7 :1;
-} BITS0_7;
-typedef struct st_bits0_15 {
-u16 b0 :1;u16 b1 :1;u16 b2 :1;u16 b3 :1;u16 b4 :1;u16 b5 :1;u16 b6 :1;u16 b7 :1;
-u16 b8 :1;u16 b9 :1;u16 b10:1;u16 b11:1;u16 b12:1;u16 b13:1;u16 b14:1;u16 b15:1;
-} BITS0_15;
-typedef struct st_bits0_31 {
-u32 b0 :1;u32 b1 :1;u32 b2 :1;u32 b3 :1;u32 b4 :1;u32 b5 :1;u32 b6 :1;u32 b7 :1;
-u32 b8 :1;u32 b9 :1;u32 b10:1;u32 b11:1;u32 b12:1;u32 b13:1;u32 b14:1;u32 b15:1;
-u32 b16:1;u32 b17:1;u32 b18:1;u32 b19:1;u32 b20:1;u32 b21:1;u32 b22:1;u32 b23:1;
-u32 b24:1;u32 b25:1;u32 b26:1;u32 b27:1;u32 b28:1;u32 b29:1;u32 b30:1;u32 b31:1;
-} BITS0_31;
-
 	/* ---------------------------------------------------------
 	prototype
 	--------------------------------------------------------- */
@@ -642,12 +552,12 @@ void LOCO_240kHz(void);//at power-on or after mcu_clock_deinit()!
 void HOCO_16MHz(void);
 void HOCO_PLL_120MHz(void);
 
-	//1875 kHz ocunt, 1kHz interrupt:
+	//1875 kHz count, 1kHz interrupt:
 void CMT0_init(void);
 void CMT0_start(void);
 //void INT_Excep_CMT0_CMI0(void) {Micros+=1000, ++Millis;}
 
-	//1875 kHz ocunt, 1kHz interrupt:
+	//1875 kHz count, 1kHz interrupt:
 void TMR01_init(void);
 void TMR01_start(void);
 //void INT_Excep_PERIB_INTB146(void) {Micros+=1000, ++Millis;}

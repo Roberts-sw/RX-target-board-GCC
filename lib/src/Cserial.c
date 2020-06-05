@@ -21,9 +21,6 @@ changes:
 #define OBJ(f) Cserial_ ## f (Shwserial *self)
 #define OBJ1(f,b) Cserial_ ## f (Shwserial *self, b)
 
-#define b_(v,n) JOIN(JOIN(b ## v ## _, R), _ ## n) = BIT_(v),
-#define regb_(args...) enum JOIN(JOIN(SCI_,R),_BITS) { args };
-
 #define R SMR	//HW 37.2.9 Serial Mode Register (SMR)
 regb_(	b_(7,CM)		b_(6,CHR)		b_(5,PE)		b_(4,PM)
 		b_(3,STOP)		b_(2,MP)		b_(1,CKS1)		b_(0,CKS0)		)

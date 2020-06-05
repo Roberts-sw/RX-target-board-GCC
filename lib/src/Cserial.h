@@ -17,10 +17,10 @@ changes:
 	/* ---------------------------------------------------------
 	public
 	--------------------------------------------------------- */
-#ifndef JOIN
-#  define JOIN(a,b)   JOIN_2(a,b)
-#  define JOIN_2(a,b) a ## b
-#endif
+//#ifndef JOIN
+//#  define JOIN(a,b)   JOIN_2(a,b)
+//#  define JOIN_2(a,b) a ## b
+//#endif
 
 	//fifo
 #define diff_(b)		( JOIN(b,_in) - JOIN(b,_out) )

@@ -2,6 +2,10 @@
    ------------------------------------------ TAB-size 4, code page UTF-8 --
 
 Wijzigingen:
+	RvL 6-6-2020
+	* pinmode(), iopin_dir(): PDR-bit '1' is output
+	- iopin_read(): ()
+	+ iopin_init(): if( !io_init[pin] || ... ) 
 	RvL 11-4-2020	* pin state
 	RvL 29-3-2020	opname in lib/src
 	RvL 17-3-2020	aanmaak
@@ -60,7 +64,8 @@ static void pinmode (eIOPIN pin, u08 mode)
 	register unsigned int port=portnr_(pin);
 
 	if(!(mode&IO_IN))						//0b------??
-	{	if(PORTREG(port,PDR)&=~(1U<<bit), !(mode&IO_HI))
+	{	PORTREG(port,PDR)|= (1U<<bit);
+		if(!(mode&IO_HI))
 			 PORTREG(port,PODR)&=~(1U<<bit);
 		else PORTREG(port,PODR)|= (1U<<bit);
 	} else PORTREG(port,PDR)&=~(1U<<bit);
@@ -70,7 +75,8 @@ static void pinmode (eIOPIN pin, u08 mode)
 	else PORTREG(port,PCR)|= (1U<<bit);
 
 	if(!(mode&IO_SPD))						//0b??------
-	{	if(PORTREG(port,DSCR2)&=~(1U<<bit),!(mode&IO_CAP))
+	{	PORTREG(port,DSCR2)&=~(1U<<bit);
+		if(!(mode&IO_CAP))
 			 PORTREG(port,DSCR)&=~(1U<<bit);
 		else PORTREG(port,DSCR)|= (1U<<bit);
 	} else PORTREG(port,DSCR2)|= (1U<<bit);	//(DSCR don't care)
@@ -162,7 +168,7 @@ u08 iopin_deinit (eIOPIN pin)
 }
 u08 iopin_init (eIOPIN pin, u08 mode)
 {	PROTECT 0;
-	if( io_mode[pin]!=mode )
+	if( !io_init[pin] || io_mode[pin]!=mode )
 	{	pinmode(pin,mode);
 		io_mode[pin]=mode;
 	}	return io_init[pin]=1;	//0 -> 1
@@ -187,16 +193,16 @@ void iopin_dir (eIOPIN pin, u08 asoutput)
 	register unsigned int bit=portbit_(pin);
 	register unsigned int port=portnr_(pin);
 	if(!asoutput)
-	{	PORTREG(port,PDR)|= (1U<<bit);
-		io_mode[pin]=io_mode[pin]&~IODIRMASK;
-	} else
 	{	PORTREG(port,PDR)&=~(1U<<bit);
 		io_mode[pin]=io_mode[pin]&~IODIRMASK|IO_IN;
+	} else
+	{	PORTREG(port,PDR)|= (1U<<bit);
+		io_mode[pin]=io_mode[pin]&~IODIRMASK;
 	}
 }
 int iopin_read (eIOPIN pin)
 {	PROTECT -1;
-	return PORTREG(portnr_(pin),PIDR) >> (portbit_(pin)&1U);
+	return PORTREG(portnr_(pin),PIDR) >> portbit_(pin)&1U;
 }
 void iopin_toggle (eIOPIN pin)
 {	PROTECTNMI;	if(mpc_func[pin]) return;//(tied to peripheral)
